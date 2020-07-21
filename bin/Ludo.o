@@ -1,0 +1,186 @@
+{-# LINE 1 "C:\Users\Thomas\AppData\Local\Temp\ghc12532_1\ghc_2.s" #-}
+.data
+	.align 4
+.align 1
+.globl __stginit_Ludo
+__stginit_Ludo:
+.data
+	.align 4
+.align 1
+.globl Ludo_move2_closure
+Ludo_move2_closure:
+	.long	Ludo_move2_info
+	.long	0
+	.long	0
+	.long	0
+.section .rodata
+	.align 4
+.align 1
+cUH_str:
+	.byte	41
+	.byte	0
+.text
+	.align 4,0x90
+	.long	0
+	.long	22
+.globl Ludo_move2_info
+Ludo_move2_info:
+.LcUI:
+	leal -12(%ebp),%eax
+	cmpl 840(%ebx),%eax
+	jb .LcUJ
+.LcUK:
+	subl $4,%esp
+	pushl %esi
+	pushl %ebx
+	call newCAF
+	addl $12,%esp
+	testl %eax,%eax
+	je .LcUG
+.LcUF:
+	movl $stg_bh_upd_frame_info,-12(%ebp)
+	movl %eax,-8(%ebp)
+	movl $cUH_str,8(%ebx)
+	addl $-12,%ebp
+	jmp ghczmprim_GHCziCString_unpackCStringzh_info
+.LcUG:
+	jmp *(%esi)
+.LcUJ:
+	jmp *-16(%ebx)
+.data
+	.align 4
+.align 1
+.globl Ludo_move1_closure
+Ludo_move1_closure:
+	.long	Ludo_move1_info
+	.long	0
+.text
+	.align 4,0x90
+	.long	SVy_srt-(sUz_info)+0
+	.long	1
+	.long	65553
+sUz_info:
+.LcVc:
+	leal -16(%ebp),%eax
+	cmpl 840(%ebx),%eax
+	jb .LcVg
+.LcVh:
+	movl $stg_upd_frame_info,-12(%ebp)
+	movl %esi,-8(%ebp)
+	movl $cV9_info,-16(%ebp)
+	movl 12(%esi),%esi
+	addl $-16,%ebp
+	testw $7,%si
+	jne .LcV9
+.LcVa:
+	jmp *(%esi)
+.text
+	.align 4,0x90
+	.long	SVy_srt-(cV9_info)+0
+	.long	0
+	.long	65568
+cV9_info:
+.LcV9:
+	movl $cVf_info,(%ebp)
+	movl $ghczmprim_GHCziTypes_ZMZN_closure+1,24(%ebx)
+	movl 3(%esi),%eax
+	movl %eax,16(%ebx)
+	movl $0,8(%ebx)
+	jmp base_GHCziShow_zdwshowSignedInt_info
+.text
+	.align 4,0x90
+	.long	SVy_srt-(cVf_info)+0
+	.long	0
+	.long	65568
+cVf_info:
+.LcVf:
+	movl $Ludo_move2_closure,16(%ebx)
+	movl %esi,8(%ebx)
+	addl $4,%ebp
+	jmp base_GHCziBase_zpzp_info
+.LcVg:
+	jmp *-16(%ebx)
+.section .rodata
+	.align 4
+.align 1
+cVn_str:
+	.byte	109
+	.byte	111
+	.byte	118
+	.byte	101
+	.byte	100
+	.byte	32
+	.byte	40
+	.byte	0
+.text
+	.align 4,0x90
+	.long	SVy_srt-(Ludo_move1_info)+0
+	.long	131077
+	.long	0
+	.long	983055
+.globl Ludo_move1_info
+Ludo_move1_info:
+.LcVq:
+	movl 8(%ebx),%eax
+	leal -4(%ebp),%ecx
+	cmpl 840(%ebx),%ecx
+	jb .LcVr
+.LcVs:
+	addl $16,%edi
+	cmpl 856(%ebx),%edi
+	ja .LcVu
+.LcVt:
+	movl $sUz_info,-12(%edi)
+	movl %eax,(%edi)
+	movl $cVo_info,-4(%ebp)
+	leal -12(%edi),%eax
+	movl %eax,16(%ebx)
+	movl $cVn_str,8(%ebx)
+	addl $-4,%ebp
+	jmp ghczmprim_GHCziCString_unpackAppendCStringzh_info
+.text
+	.align 4,0x90
+	.long	SVy_srt-(cVo_info)+4
+	.long	0
+	.long	196640
+cVo_info:
+.LcVo:
+	movl %esi,16(%ebx)
+	movl $base_HasteziHandle_stdout_closure,8(%ebx)
+	addl $4,%ebp
+	jmp base_GHCziIOziHandleziText_hPutStrLn1_info
+.LcVu:
+	movl $16,904(%ebx)
+.LcVr:
+	movl %eax,8(%ebx)
+	movl $Ludo_move1_closure,%esi
+	jmp *-8(%ebx)
+.data
+	.align 4
+.align 1
+.globl Ludo_move_closure
+Ludo_move_closure:
+	.long	Ludo_move_info
+	.long	0
+.text
+	.align 4,0x90
+	.long	SVy_srt-(Ludo_move_info)+12
+	.long	131077
+	.long	0
+	.long	65551
+.globl Ludo_move_info
+Ludo_move_info:
+.LcVO:
+	movl 8(%ebx),%eax
+	movl %eax,8(%ebx)
+	jmp Ludo_move1_info
+.section .data
+	.align 4
+.align 1
+SVy_srt:
+	.long	Ludo_move2_closure
+	.long	base_HasteziHandle_stdout_closure
+	.long	base_GHCziIOziHandleziText_hPutStrLn1_closure
+	.long	Ludo_move1_closure
+.ident "GHC 7.10.2"
+
