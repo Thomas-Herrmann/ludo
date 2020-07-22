@@ -34,6 +34,9 @@ library
       src
   build-depends:
       base >=4.8 && <5
+    , mtl
+    , random
+    , containers
   default-language: Haskell2010
 
 executable ludo-exe
@@ -50,6 +53,7 @@ executable ludo-exe
     , data-binary-ieee754
     , haste-prim
     , monads-tf
+    , random
   default-language: Haskell2010
 
 test-suite ludo-test
