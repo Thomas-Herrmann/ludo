@@ -7,9 +7,11 @@ module Ludo
 import Control.Monad
 import Control.Monad.State
 import Data.Map as Map
+import Data.List as List
 import System.Random
 import Control.Exception
 import Text.Read (readMaybe)
+import Data.Maybe
 
 
 data Color = Blue | Green | Red | Yellow deriving (Eq, Ord, Show)
@@ -46,6 +48,33 @@ colorToNum Blue   = 1
 colorToNum Green  = 2
 colorToNum Yellow = 3
 colorToNum Red    = 4
+
+
+removeFrom :: [(Int, Piece)] -> Int -> [(Int, Piece)]
+removeFrom [] _ = []
+removeFrom (piece@(m, _):pieces) n =
+    if n == m
+        then pieces
+        else piece:(removeFrom pieces n)
+
+
+removeByCell :: [(Int, Piece)] -> Int -> [(Int, Piece)]
+removeByCell [] _ = []
+removeByCell (piece@(_, Out):pieces) i = piece:(removeFrom pieces i)
+removeByCell (piece@(_, Active j):pieces) i =
+    if i == j
+        then removeFrom pieces i
+        else piece:(removeFrom pieces i)
+
+
+convertCell :: Color -> Int -> Color -> Int
+convertCell fromColor cell toColor = (cell + cellOffset) `mod` 52 -- TODO: confirm
+
+    where
+        fromNum = colorToNum fromColor
+        toNum = colorToNum toColor
+        distance = toNum - (fromNum `mod` 4)
+        cellOffset = 13 * (4 - distance)
 
 
 nextTurn :: Ludo ()
@@ -152,7 +181,62 @@ won = return False -- TODO!
 
 
 applyOption :: Option -> Ludo ()
-applyOption option = return () -- TODO!
+applyOption (Play n) = move n 0 
+
+applyOption (Move n i) = move n i
+
+
+move :: Int -> Int -> Ludo ()
+move n i = do
+    state <- get
+    let player = turn state
+    let allPieces = pieces state
+    let colorPieces = allPieces ! player
+    case i of
+        56 -> do
+            let updatedPieces = removeFrom colorPieces n
+            put state{ pieces = Map.insert player updatedPieces allPieces }
+        _ | i `elem` starCells -> do
+            let starIndex = fromJust $ List.elemIndex i starCells
+            if starIndex + 1 == length starCells
+                then do
+                    let updatedPieces = removeFrom colorPieces n
+                    put state{ pieces = Map.insert player updatedPieces allPieces }
+                else do
+                    let newCell = starCells !! (starIndex + 1)
+                    let updatedPieces = (n, Active newCell):(removeFrom colorPieces n)
+                    put state{ pieces = Map.insert player updatedPieces allPieces }
+                    player `eliminatesAt` newCell
+            player `eliminatesAt` i
+          | i `elem` globeCells -> do
+            let updatedPieces = (n, Active i):(removeFrom colorPieces n)
+            put state{ pieces = Map.insert player updatedPieces allPieces }
+            when (Blue /= player) (Blue `eliminatesAt` (convertCell player i Blue))
+            when (Green /= player) (Green `eliminatesAt` (convertCell player i Green))
+            when (Yellow /= player) (Yellow `eliminatesAt` (convertCell player i Yellow))
+            when (Red /= player) (Red `eliminatesAt` (convertCell player i Red))
+          | i >= 51 -> do
+            let updatedPieces = (n, Active i):(removeFrom colorPieces n)
+            put state{ pieces = Map.insert player updatedPieces allPieces }
+          | otherwise -> do
+            let updatedPieces = (n, Active i):(removeFrom colorPieces n)
+            put state{ pieces = Map.insert player updatedPieces allPieces }
+            player `eliminatesAt` i
+
+
+    where
+        starCells  = [5, 11, 18, 24, 31, 37, 44, 50]
+        globeCells = [8, 13, 21, 26, 34, 39, 47]
+
+
+eliminatesAt :: Color -> Int -> Ludo ()
+eliminatesAt color i = do
+    state <- get
+    let allPieces = pieces state
+    when (Blue /= color) (put state{ pieces = Map.insert Blue (removeByCell (allPieces ! Blue) (convertCell color i Blue)) allPieces })
+    when (Green /= color) (put state{ pieces = Map.insert Green (removeByCell (allPieces ! Green) (convertCell color i Green)) allPieces })
+    when (Yellow /= color) (put state{ pieces = Map.insert Yellow (removeByCell (allPieces ! Yellow) (convertCell color i Yellow)) allPieces })
+    when (Red /= color) (put state{ pieces = Map.insert Red (removeByCell (allPieces ! Red) (convertCell color i Red)) allPieces })
 
 
 options :: Int -> Ludo [Option]
