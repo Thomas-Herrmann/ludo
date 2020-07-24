@@ -132,6 +132,7 @@ step = do
         else do 
              rolls <- getNumRolls
              when (rolls < 1) nextTurn
+             player <- playing
              num <- roll
              lift $ putStrLn $ show player ++ " rolled " ++ show num
              optionList <- options num
