@@ -17,5 +17,16 @@ main = do
     roll <- getStdRandom (randomR (1, 4))
     let player = numToColor roll
     putStrLn $ "player " ++ show player ++ " was chosen randomly"
-    winner <- play player
-    putStrLn $ "player " ++ show winner ++ " has won!"
+    winOrder <- play player
+    putStrLn $ "game has concluded!"
+    printWinOrder winOrder 0
+
+
+printWinOrder :: [Color] -> Int -> IO ()
+printWinOrder [] _ = return ()
+printWinOrder (color:winOrder) place = do
+    putStrLn $ show color ++ " finished " ++ (placeString !! place)
+    printWinOrder winOrder (place + 1)
+
+    
+placeString = ["1st", "2nd", "3rd", "4th"]

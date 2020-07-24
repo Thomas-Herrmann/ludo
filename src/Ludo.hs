@@ -24,6 +24,7 @@ data GameState = GameState {
                              turn :: Color
                            , numRolls :: Int
                            , pieces :: Map Color [(Int, Piece)]
+                           , finished :: [Color]
                            }
 
 type Ludo a = StateT GameState IO a
@@ -110,40 +111,76 @@ decrementNumRolls = do
 
 
 initGameState :: Color -> GameState
-initGameState player = GameState player 3 pieceMap
+initGameState player = GameState player 3 pieceMap []
 
     where
         pieceMap = Map.fromList [(player, [(1, Out), (2, Out), (3, Out), (4, Out)]) | player <- [Blue, Green, Red, Yellow]]
 
 
-play :: Color -> IO Color
+play :: Color -> IO [Color]
 play player = do 
     (winner, _) <- runStateT step (initGameState player)
     return winner
 
 
-step :: Ludo Color
+step :: Ludo [Color]
 step = do
-    rolls <- getNumRolls
-    when (rolls < 1) nextTurn
-    num <- roll
     player <- playing
-    lift $ putStrLn $ show player ++ " rolled " ++ show num
-    optionList <- options num
-    case optionList of
-        []         -> do 
-            lift $ putStrLn "no options available, skipping roll"
-            decrementNumRolls
-            step
-        optionList -> do
-            option <- promptOption optionList
-            applyOption option
-            hasWon <- won
-            if hasWon
-                then playing >>= (\winner -> return winner)
-                else do
-                    if num == 6 then setNumRolls 1 else setNumRolls 0
-                    step
+    skipPlayer <- colorHasFinished player
+    if skipPlayer
+        then nextTurn >> step
+        else do 
+             rolls <- getNumRolls
+             when (rolls < 1) nextTurn
+             num <- roll
+             lift $ putStrLn $ show player ++ " rolled " ++ show num
+             optionList <- options num
+             case optionList of
+                 []         -> do 
+                     lift $ putStrLn "no options available, skipping roll"
+                     decrementNumRolls
+                     step
+                 optionList -> do
+                     option <- promptOption optionList
+                     applyOption option
+                     hasFinished <- colorHasFinished player
+                     when hasFinished ((updateWinOrder player) >> (lift (putStrLn (show player ++ " has finished!"))))
+                     gameFinished <- gameHasFinished
+                     if gameFinished
+                         then getWinOrder >>= (\winOrder -> return winOrder)
+                         else (if num == 6 then setNumRolls 1 else setNumRolls 0) >> step
+
+
+colorHasFinished :: Color -> Ludo Bool
+colorHasFinished color = do
+    state <- get
+    return $ length ((pieces state) ! color) == 0
+
+
+updateWinOrder :: Color -> Ludo ()
+updateWinOrder color = do
+    state <- get
+    let previousFinished = finished state
+    put state{ finished = (previousFinished ++ [color]) }
+
+
+gameHasFinished :: Ludo Bool
+gameHasFinished = do
+    state <- get
+    return $ length (finished state) == 3
+
+
+getWinOrder :: Ludo [Color]
+getWinOrder = do
+    state <- get
+    foldM appendUnfinished (finished state) [Blue, Green, Yellow, Red]
+
+    where
+        appendUnfinished order color = do
+            hasFinished <- colorHasFinished color
+            return $ if hasFinished
+                        then order
+                        else order ++ [color]
 
 
 promptOption :: [Option] -> Ludo Option
@@ -176,10 +213,6 @@ promptIndex l h = do
                     promptIndex l h
 
 
-won :: Ludo Bool
-won = return False -- TODO!
-
-
 applyOption :: Option -> Ludo ()
 applyOption (Play n) = move n 0 
 
@@ -198,45 +231,86 @@ move n i = do
             put state{ pieces = Map.insert player updatedPieces allPieces }
         _ | i `elem` starCells -> do
             let starIndex = fromJust $ List.elemIndex i starCells
-            if starIndex + 1 == length starCells
-                then do
-                    let updatedPieces = removeFrom colorPieces n
-                    put state{ pieces = Map.insert player updatedPieces allPieces }
-                else do
-                    let newCell = starCells !! (starIndex + 1)
-                    let updatedPieces = (n, Active newCell):(removeFrom colorPieces n)
-                    put state{ pieces = Map.insert player updatedPieces allPieces }
-                    player `eliminatesAt` newCell
-            player `eliminatesAt` i
+            let newCell = (starCells ++ [56]) !! (starIndex + 1)
+            let updatedPieces = 
+                    if starIndex + 1 == length starCells 
+                        then removeFrom colorPieces n 
+                        else (n, Active newCell):(removeFrom colorPieces n)
+            put state{ pieces = Map.insert player updatedPieces allPieces }
+            player `movesTo` i
+            active <- player `occupies` i
+            when active (player `movesTo` newCell)
           | i `elem` globeCells -> do
             let updatedPieces = (n, Active i):(removeFrom colorPieces n)
             put state{ pieces = Map.insert player updatedPieces allPieces }
-            when (Blue /= player) (Blue `eliminatesAt` (convertCell player i Blue))
-            when (Green /= player) (Green `eliminatesAt` (convertCell player i Green))
-            when (Yellow /= player) (Yellow `eliminatesAt` (convertCell player i Yellow))
-            when (Red /= player) (Red `eliminatesAt` (convertCell player i Red))
+            when (Blue /= player) (Blue `movesTo` (convertCell player i Blue))
+            when (Green /= player) (Green `movesTo` (convertCell player i Green))
+            when (Yellow /= player) (Yellow `movesTo` (convertCell player i Yellow))
+            when (Red /= player) (Red `movesTo` (convertCell player i Red))
           | i >= 51 -> do
             let updatedPieces = (n, Active i):(removeFrom colorPieces n)
             put state{ pieces = Map.insert player updatedPieces allPieces }
           | otherwise -> do
             let updatedPieces = (n, Active i):(removeFrom colorPieces n)
             put state{ pieces = Map.insert player updatedPieces allPieces }
-            player `eliminatesAt` i
-
+            player `movesTo` i
 
     where
         starCells  = [5, 11, 18, 24, 31, 37, 44, 50]
         globeCells = [8, 13, 21, 26, 34, 39, 47]
 
 
-eliminatesAt :: Color -> Int -> Ludo ()
-eliminatesAt color i = do
+occupies :: Color -> Int -> Ludo Bool
+occupies color i = do
+    state <- get
+    let colorPieces = (pieces state) ! color
+    return $ Prelude.foldr isOn False colorPieces
+
+    where
+        isOn (_, Out) b      = b
+        isOn (_, Active j) b = if i == j then True else b
+
+
+isOutnumberedAt :: Color -> Int -> Ludo Bool
+isOutnumberedAt color i = foldM hasTwo False [Blue, Green, Yellow, Red]
+
+    where
+        getPieces = do
+            state <- get
+            return $ pieces state
+
+        incrementIfEqual j n = if i == j then n + 1 else n
+
+        hasTwo b color' =
+            if color == color'
+                then return b
+                else do
+                    allPieces <- getPieces
+                    let consPosition (_, piece) list = 
+                            case piece of
+                                Active j -> (convertCell color' j color):list
+                                Out      -> list
+                    let positions = Prelude.foldr consPosition [] (allPieces ! color')
+                    return $ b || (Prelude.foldr incrementIfEqual 0 positions) >= 2
+
+
+movesTo :: Color -> Int -> Ludo ()
+movesTo color i = do
+    outnumbered <- color `isOutnumberedAt` i
+    if outnumbered
+        then color `eliminatedAt` i
+        else do
+            when (Blue /= color)   (Blue `eliminatedAt` (convertCell color i Blue))
+            when (Green /= color)  (Green `eliminatedAt` (convertCell color i Green))
+            when (Yellow /= color) (Yellow `eliminatedAt` (convertCell color i Yellow))
+            when (Red /= color)    (Red `eliminatedAt` (convertCell color i Red))
+
+
+eliminatedAt :: Color -> Int -> Ludo ()
+eliminatedAt color i = do
     state <- get
     let allPieces = pieces state
-    when (Blue /= color) (put state{ pieces = Map.insert Blue (removeByCell (allPieces ! Blue) (convertCell color i Blue)) allPieces })
-    when (Green /= color) (put state{ pieces = Map.insert Green (removeByCell (allPieces ! Green) (convertCell color i Green)) allPieces })
-    when (Yellow /= color) (put state{ pieces = Map.insert Yellow (removeByCell (allPieces ! Yellow) (convertCell color i Yellow)) allPieces })
-    when (Red /= color) (put state{ pieces = Map.insert Red (removeByCell (allPieces ! Red) (convertCell color i Red)) allPieces })
+    put state{ pieces = Map.insert Blue (removeByCell (allPieces ! Blue) i) allPieces }
 
 
 options :: Int -> Ludo [Option]
