@@ -244,10 +244,10 @@ move n i = do
           | i `elem` globeCells -> do
             let updatedPieces = (n, Active i):(removeFrom colorPieces n)
             put state{ pieces = Map.insert player updatedPieces allPieces }
-            when (Blue /= player) (Blue `movesTo` (convertCell player i Blue))
-            when (Green /= player) (Green `movesTo` (convertCell player i Green))
-            when (Yellow /= player) (Yellow `movesTo` (convertCell player i Yellow))
-            when (Red /= player) (Red `movesTo` (convertCell player i Red))
+            when (Blue /= player) (handleGlobe Blue)
+            when (Green /= player) (handleGlobe Green)
+            when (Yellow /= player) (handleGlobe Yellow)
+            when (Red /= player) (handleGlobe Red)
           | i >= 51 -> do
             let updatedPieces = (n, Active i):(removeFrom colorPieces n)
             put state{ pieces = Map.insert player updatedPieces allPieces }
@@ -259,6 +259,10 @@ move n i = do
     where
         starCells  = [5, 11, 18, 24, 31, 37, 44, 50]
         globeCells = [8, 13, 21, 26, 34, 39, 47]
+        handleGlobe color = do 
+            player <- playing
+            isOccupying <- color `occupies` (convertCell player i color)
+            when (isOccupying) (player `eliminatedAt` i)
 
 
 occupies :: Color -> Int -> Ludo Bool
