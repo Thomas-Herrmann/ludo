@@ -6,10 +6,6 @@ import Haste.Prim (toJSStr)
 import System.Random
 import Ludo
 
---main :: IO ()
---main = do
---    export "move" move
-
 
 main :: IO ()
 main = do

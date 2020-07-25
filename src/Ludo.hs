@@ -259,6 +259,7 @@ move n i = do
     where
         starCells  = [5, 11, 18, 24, 31, 37, 44, 50]
         globeCells = [8, 13, 21, 26, 34, 39, 47]
+        
         handleGlobe color = do 
             player <- playing
             isOccupying <- color `occupies` (convertCell player i color)

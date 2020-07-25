@@ -17,6 +17,7 @@
 #
 # resolver: ./custom-snapshot.yaml
 # resolver: https://example.com/snapshots/2018-01-01.yaml
+#resolver: lts-15.6
 resolver: lts-6.14
 
 # User packages to be built.
@@ -37,6 +38,7 @@ packages:
 extra-deps:
 - haste-lib-0.6.0.0@sha256:ca8b099d7803ef19687b7f81a1960cb4370f7a454eb1c6b4b1e04cc847aeaa50,2245
 - haste-prim-0.6.0.0@sha256:d0b7cbd39678e89a55e357bc2c6b0235fe1a78a271d7795c71647bc342761f74,1515
+#- loops-0.2.0.2@sha256:ef9ed99ec28140d39775a0b9c44333496d3ee754995219460d76cb137a9534ce,2551
   #- haste-prim-0.6.0.0@sha256:d0b7cbd39678e89a55e357bc2c6b0235fe1a78a271d7795c71647bc342761f74,1515
 #- haste-lib-0.6.0.0@sha256:ca8b099d7803ef19687b7f81a1960cb4370f7a454eb1c6b4b1e04cc847aeaa50,2245
 #- binary-0.7.6.1@sha256:bc350aa338d2c40562bd15dd12c7c7608241ec7022766ab7ca7474ae6003614e,4268
