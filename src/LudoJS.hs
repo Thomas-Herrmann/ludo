@@ -4,6 +4,7 @@ module LudoJS
     ( play
     , Player(..)
     , numToColor
+    , convertCell
     ) where
 
 import Control.Monad
@@ -203,8 +204,8 @@ initGameState player = GameState Roll player 3 pieceMap []
         pieceMap = Map.fromList [(player, [(1, Out), (2, Out), (3, Out), (4, Out)]) | player <- [Blue, Green, Red, Yellow]]
 
 
-play :: Player -> [Elem] -> IO ()
-play player [canvasEl] = (onEvent canvasEl Click clickHandler) >> return ()
+play :: Player -> Elem -> IO ()
+play player canvasEl = (onEvent canvasEl Click clickHandler) >> return ()
     where
         clickHandler (MouseData coords (Just MouseLeft) _) = do
             state <- getGameState
