@@ -6,14 +6,14 @@ const canvasScale = 50;
 const numTilesX = 15;
 const numTilesY = 15;
 
-const colorGreen = [34, 177, 76];
-const colorYellow = [255, 242, 0];
-const colorRed = [237, 28, 36];
-const colorBlue = [0, 162, 232];
-const colorDarkGreen = [0, 128, 0];
-const colorDarkYellow = [128, 128, 0];
-const colorDarkRed = [128, 0, 0];
-const colorDarkBlue = [0, 0, 128];
+const colorGreen = [3, 166, 120];
+const colorYellow = [242, 159, 5];
+const colorRed = [242, 7, 70];
+const colorBlue = [4, 196, 217];
+const colorDarkGreen = [2, 132, 95];
+const colorDarkYellow = [193, 127, 4];
+const colorDarkRed = [193, 5, 56];
+const colorDarkBlue = [3, 156, 173];
 
 var tileWidth = 50;
 var tileHeight = 50;
@@ -137,13 +137,13 @@ function playerPosToTilePos(player, pos) {
         return homePositions[pos - 51];
     }
 
-    newPos = (pos + offset) % 52;
+    let newPos = (pos + offset) % 52;
     return boardPositions[newPos];
 }
 
 var playerPos = 0;
 
-function drawBoard(gameState, rolls, options) {
+function drawBoard(gameState, options, rolls) {
     ctx.fillStyle = "#404040";
     ctx.fillRect(0, 0, c.width, c.height);
 
@@ -180,4 +180,11 @@ function drawBoard(gameState, rolls, options) {
 
     playerPos++;
     setTimeout(() => drawBoard(), 200);
+}
+
+function posToField(posX, posY, player) {
+    tileX = Math.floor(posX / tileWidth);
+    tileY = Math.floor(posY / tileHeight);
+
+    
 }

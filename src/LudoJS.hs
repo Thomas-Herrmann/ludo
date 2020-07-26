@@ -63,8 +63,13 @@ instance ToAny GameState where
 
             toAnyPieces pieces = toObject [(toJSStr (show player), toObject [(toJSStr (show n), toAnyPiece piece) | (n, piece) <- pairList ]) | (player, pairList) <- Map.toList pieces]
 
-            toAnyFinished finished = toObject [(toJSStr (show (fromJust $ elemIndex player finished)), toAny $ colorToNum player) | player <- finished]  
+            toAnyFinished finished = toObject [(toJSStr (show (fromJust $ elemIndex player finished)), toAny $ colorToNum player) | player <- finished]
 
+instance ToAny Option where
+    toAny option = toAny option --TODO :^)
+
+instance ToAny Player where
+    toAny player = toAny (show player)
 
 instance FromAny Player where
     fromAny any = do
@@ -212,7 +217,8 @@ play :: Player -> [Elem] -> IO ()
 play player [canvasEl] = (onEvent canvasEl Click clickHandler) >> return ()
     where
         clickHandler (MouseData coords (Just MouseLeft) _) = do
-            maybe <- maybeField coords
+            state <- getGameState
+            maybe <- maybeField coords (turn state)
             case maybe of
                 Just i  -> do
                     state  <- getGameState
@@ -247,12 +253,21 @@ putGameState :: GameState -> IO ()
 putGameState = ffi "((gs) => gameState=gs)"
 
 
-maybeField :: (Int, Int) -> IO (Maybe Int)
-maybeField (x, y) = return Nothing -- TODO
+maybeField :: (Int, Int) -> Player -> IO (Maybe Int)
+maybeField (x, y) player = findField x y player
+    where
+        findField = ffi "((x, y, player) => posToField(x, y, player))" :: Int -> Int -> Player -> IO (Maybe Int)
 
 
 drawBoard :: Ludo ()
-drawBoard = return () -- TODO! (get options and num from state)
+drawBoard = do
+    gameState <- State.get
+    let opts = [] :: [Option] --TODO
+    let rolls = 1 --TODO
+    lift (draw gameState opts rolls)
+    return ()
+    where
+        draw = ffi "((gs, opts, rolls) => drawBoard(gs, opts, rolls))" :: GameState -> [Option] -> Int -> IO ()
 
 
 selectPiece :: Int -> Int -> Ludo ()
