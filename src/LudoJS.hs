@@ -63,12 +63,12 @@ instance ToAny GameState where
 
             toAnyPieces pieces = toObject [(toJSStr (show player), toObject [(toJSStr (show n), toAnyPiece piece) | (n, piece) <- pairList ]) | (player, pairList) <- Map.toList pieces]
 
-            toAnyFinished finished = toObject [(toJSStr (show player), toAny $ show (colorToNum player)) | player <- finished]  
+            toAnyFinished finished = toObject [(toJSStr (show (fromJust $ elemIndex player finished)), toAny $ colorToNum player) | player <- finished]  
 
 
-instance FromAny Color where
+instance FromAny Player where
     fromAny any = do
-        string <- fromAny any
+        string <- (fromAny :: JSAny -> IO String) any
         return $ case string of
             "Blue"   -> Blue
             "Green"  -> Green
@@ -76,14 +76,56 @@ instance FromAny Color where
             "Red"    -> Red
 
 
+instance FromAny Stage where
+    fromAny any = do
+    stateString <- (Foreign.get :: JSAny -> JSString -> IO JSString) any "Stage"
+    case stateString of
+        "Roll" -> return Roll
+        "SelectPiece" -> Foreign.get any "PieceIndex" >>= (\n -> return $ SelectPiece n)
+        "SelectField" -> Foreign.get any "PieceIndex" >>= (\n -> Foreign.get any "FieldIndex" >>= (\i -> return $ SelectField n i))   
+
+
 instance FromAny GameState where
     fromAny any = do
-        stageAny <- Foreign.get any "Stage"
-        turnAny <- Foreign.get any "Turn"
+        stageAny    <- Foreign.get any "Stage"
+        turnAny     <- Foreign.get any "Turn"
         numRollsAny <- Foreign.get any "NumRolls"
-        piecesAny <- Foreign.get any "Pieces"
+        piecesAny   <- Foreign.get any "Pieces"
         finishedAny <- Foreign.get any "Finished"
-        turn <- fromAny turnAny -- TODO!
+        stage       <- (fromAny :: JSAny -> IO Stage) stageAny
+        turn        <- (fromAny :: JSAny -> IO Player) turnAny
+        numRolls    <- (fromAny :: JSAny -> IO Int) numRollsAny
+        pieces      <- fromAnyPieces piecesAny
+        finished    <- fromAnyFinished finishedAny
+        return $ GameState stage turn numRolls pieces finished
+        where
+            fromAnyPiecePair any n = do
+                pieceString <- Foreign.get any "Piece"
+                case () of
+                   _ | pieceString == toJSStr "Out"    -> return (n, Out)
+                     | pieceString == toJSStr "Active" -> Foreign.get any "Field" >>= (\i -> return (n, Active i))
+
+            fromAnyPieces any = 
+                let fromAnyPlayerPieces player = do
+                    piecesAny <- Foreign.get any $ toJSStr (show player)
+                    let listBuilder l n = do
+                        hasN <- Foreign.has piecesAny $ toJSStr (show n)
+                        if hasN
+                            then Foreign.get piecesAny (toJSStr (show n)) >>= (\pairAny -> fromAnyPiecePair pairAny n >>= (\pair -> return $ l ++ [pair]))
+                            else return l
+                    pieces <- foldM listBuilder [] [1, 2, 3, 4]
+                    return (player, pieces)     
+                in Prelude.mapM fromAnyPlayerPieces [Blue, Green, Yellow, Red] >>= (\kVList -> return $ Map.fromList kVList)
+
+            fromAnyFinished any = 
+                let listBuilder l place = do
+                    hasN <- Foreign.has any $ toJSStr (show place)
+                    if hasN
+                        then Foreign.get any (toJSStr (show place)) >>= (\colorNum -> return $ l ++ [numToColor colorNum])
+                        else return l
+                in foldM listBuilder [] [1, 2, 3, 4]
+
+
 
 
 numToColor :: Int -> Player
