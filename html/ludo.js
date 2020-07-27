@@ -31,6 +31,15 @@ window.onload = function() {
     tileHeight = c.height / numTilesY;
 
     drawBoard();
+
+    c.onclick = function(ev) {
+        console.log(ev);
+        if (ev.button == 0) {
+            let field = posToField(ev.offsetX, ev.offsetY, "Yellow"); 
+            let tilePos = playerPosToTilePos("Yellow", field);
+            drawTiles([tilePos], drawPlayer, "Yellow");
+        }
+    }
 }
 
 function drawTiles(tiles, drawFunc, ...args) {
@@ -179,12 +188,41 @@ function drawBoard(gameState, options, rolls) {
     drawTiles([playerPosToTilePos("Blue", playerPos)], drawPlayer, "Blue")
 
     playerPos++;
-    setTimeout(() => drawBoard(), 200);
+    //setTimeout(() => drawBoard(), 200);
 }
 
 function posToField(posX, posY, player) {
-    tileX = Math.floor(posX / tileWidth);
-    tileY = Math.floor(posY / tileHeight);
+    let tileX = Math.floor(posX / tileWidth);
+    let tileY = Math.floor(posY / tileHeight);
+    let tilePosStr = [tileX, tileY].toString();
 
-    
+    let toStrArr = (arr) => arr.map((v, i) => v.toString())
+    let field = toStrArr(boardPositions).indexOf(tilePosStr);
+
+    if (field != -1) {
+        // Offset according to player
+        switch (player) {
+            case "Green":  field -= 13 * 0; break;
+            case "Yellow": field -= 13 * 1; break
+            case "Red":    field -= 13 * 2; break;
+            case "Blue":   field -= 13 * 3; break;
+        }
+
+        return (field + 52) % 52;
+    } else {
+        // Check if field is in a home position
+        switch (player) {
+            case "Green":  field = toStrArr(greenHomePositions).indexOf(tilePosStr); break;
+            case "Yellow": field = toStrArr(yellowHomePositions).indexOf(tilePosStr); break;
+            case "Red":    field = toStrArr(redHomePositions).indexOf(tilePosStr); break;
+            case "Blue":   field = toStrArr(blueHomePositions).indexOf(tilePosStr); break;
+        }
+
+        if (field != -1) {
+            return field + 51;
+        }
+    }
+
+    // Field not found
+    return null;
 }
