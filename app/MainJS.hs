@@ -1,5 +1,5 @@
 {-# LANGUAGE OverloadedStrings #-}
-module MainJS where
+module Main where
 
 import Haste.Foreign
 import Haste.Prim (toJSStr)

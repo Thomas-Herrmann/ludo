@@ -1,4 +1,6 @@
 .stack-work/
+.haste-work/
+haste-out/
 x86_64-windows-haste-0.6.0.0-ghc-7.10.2/
 man/
 docs/

@@ -30,7 +30,7 @@ window.onload = function() {
     tileWidth = c.width / numTilesX;
     tileHeight = c.height / numTilesY;
 
-    drawBoard();
+    /*drawBoard();
 
     c.onclick = function(ev) {
         console.log(ev);
@@ -39,7 +39,7 @@ window.onload = function() {
             let tilePos = playerPosToTilePos("Yellow", field);
             drawTiles([tilePos], drawPlayer, "Yellow");
         }
-    }
+    }*/
 }
 
 function drawTiles(tiles, drawFunc, ...args) {
@@ -152,7 +152,7 @@ function playerPosToTilePos(player, pos) {
 
 var playerPos = 0;
 
-function drawBoard(gameState, options, rolls) {
+function drawStaticBoard() {
     ctx.fillStyle = "#404040";
     ctx.fillRect(0, 0, c.width, c.height);
 
@@ -171,6 +171,14 @@ function drawBoard(gameState, options, rolls) {
 
     drawTiles(globeCells.map((v, i) => boardPositions[v]), drawGlobe);
     drawTiles(starCells.map((v, i) => boardPositions[v]), drawStar);
+
+    
+}
+
+function drawBoard(gameState, options, rolls) {
+    drawStaticBoard();
+
+    console.log(gameState)
 
     drawTiles(greenOutPositions, drawPlayer, "Green");
     drawTiles(yellowOutPositions, drawPlayer, "Yellow");

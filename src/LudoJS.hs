@@ -10,7 +10,6 @@ module LudoJS
 import Control.Monad
 import Control.Monad.State as State
 import Control.Monad.Loops
-import Generics.Deriving
 import Haste.Events
 import Haste.DOM
 import Haste.Graphics.Canvas
@@ -48,28 +47,28 @@ instance Show Option where
     show (Move n i)  = "move piece " ++ show n ++ " to cell " ++ show i 
 
 instance ToAny GameState where
-    toAny state = toObject [("Stage", toAny $ stage state),
-                            ("Turn", toAny $ show (turn state)),
-                            ("NumRolls", toAny $ numRolls state),
-                            ("Pieces", toAny $ pieces state),
-                            ("Finished", toAny $ finished state)]
+    toAny state = toObject [("stage", toAny $ stage state),
+                            ("turn", toAny $ show (turn state)),
+                            ("numRolls", toAny $ numRolls state),
+                            ("pieces", toAny $ pieces state),
+                            ("finished", toAny $ finished state)]
 
 instance ToAny (Map Player [(Int, Piece)]) where
     toAny pieces = toObject [(toJSStr (show player), toObject [(toJSStr (show n), toAny piece) | (n, piece) <- pairList ]) | (player, pairList) <- Map.toList pieces]
 
 instance ToAny Piece where
-    toAny Out        = toObject [("Piece", toAny (toJSStr "Out"))]
-    toAny (Active i) = toObject [("Piece", toAny (toJSStr "Active")), ("Field", toAny i)]
+    toAny Out        = toObject [("piece", toAny (toJSStr "Out"))]
+    toAny (Active i) = toObject [("piece", toAny (toJSStr "Active")), ("field", toAny i)]
 
 instance ToAny Stage where
-    toAny Roll = toObject [("Stage", toAny (toJSStr "Roll"))]
-    toAny (SelectPiece n) = toObject [("Stage", toAny (toJSStr "SelectPiece")), ("PieceIndex", toAny n)]
-    toAny (SelectField n i) = toObject [("Stage", toAny (toJSStr "SelectField")), ("PieceIndex", toAny n), ("FieldIndex", toAny i)]
-    toAny GameFinished = toObject [("Stage", toAny (toJSStr "GameFinished"))]
+    toAny Roll = toObject [("stage", toAny (toJSStr "Roll"))]
+    toAny (SelectPiece n) = toObject [("stage", toAny (toJSStr "SelectPiece")), ("pieceIndex", toAny n)]
+    toAny (SelectField n i) = toObject [("stage", toAny (toJSStr "SelectField")), ("pieceIndex", toAny n), ("fieldIndex", toAny i)]
+    toAny GameFinished = toObject [("stage", toAny (toJSStr "GameFinished"))]
 
 instance ToAny Option where
-    toAny (Play n)   = toObject [("Option", toAny (toJSStr "Play")), ("Piece", toAny n)]
-    toAny (Move n i) = toObject [("Option", toAny (toJSStr "Move")), ("Piece", toAny n), ("Field", toAny i)]
+    toAny (Play n)   = toObject [("option", toAny (toJSStr "Play")), ("piece", toAny n)]
+    toAny (Move n i) = toObject [("option", toAny (toJSStr "Move")), ("piece", toAny n), ("field", toAny i)]
 
 instance ToAny Player where
     toAny player = toAny (show player)
@@ -86,11 +85,11 @@ instance FromAny Player where
 
 instance FromAny Stage where
     fromAny any = do
-    stateString <- (Foreign.get :: JSAny -> JSString -> IO JSString) any "Stage"
+    stateString <- (Foreign.get :: JSAny -> JSString -> IO JSString) any "stage"
     case stateString of
         "Roll" -> return Roll
-        "SelectPiece"  -> Foreign.get any "PieceIndex" >>= (\n -> return $ SelectPiece n)
-        "SelectField"  -> Foreign.get any "PieceIndex" >>= (\n -> Foreign.get any "FieldIndex" >>= (\i -> return $ SelectField n i))
+        "SelectPiece"  -> Foreign.get any "pieceIndex" >>= (\n -> return $ SelectPiece n)
+        "SelectField"  -> Foreign.get any "pieceIndex" >>= (\n -> Foreign.get any "fieldIndex" >>= (\i -> return $ SelectField n i))
         "GameFinished" -> return GameFinished   
 
 
@@ -108,19 +107,19 @@ instance FromAny (Map Player [(Int, Piece)]) where
         in Prelude.mapM fromAnyPlayerPieces [Blue, Green, Yellow, Red] >>= (\kVList -> return $ Map.fromList kVList)
         where
             fromAnyPiecePair any n = do
-                pieceString <- Foreign.get any "Piece"
+                pieceString <- Foreign.get any "piece"
                 case () of
                    _ | pieceString == toJSStr "Out"    -> return (n, Out)
-                     | pieceString == toJSStr "Active" -> Foreign.get any "Field" >>= (\i -> return (n, Active i))
+                     | pieceString == toJSStr "Active" -> Foreign.get any "field" >>= (\i -> return (n, Active i))
 
 
 instance FromAny GameState where
     fromAny any = do
-        stage    <- Foreign.get any "Stage"
-        turn     <- Foreign.get any "Turn"
-        numRolls <- Foreign.get any "NumRolls"
-        pieces   <- Foreign.get any "Pieces"
-        finished <- Foreign.get any "Finished"
+        stage    <- Foreign.get any "stage"
+        turn     <- Foreign.get any "turn"
+        numRolls <- Foreign.get any "numRolls"
+        pieces   <- Foreign.get any "pieces"
+        finished <- Foreign.get any "finished"
         return $ GameState stage turn numRolls pieces finished
 
 
