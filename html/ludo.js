@@ -1,23 +1,26 @@
 var gameState;
 
 var c, ctx;
+var tileWidth = 50;
+var tileHeight = 50;
 
 const canvasScale = 50;
 const numTilesX = 15;
 const numTilesY = 15;
 
-const colorGreen = [3, 166, 120];
-const colorYellow = [242, 159, 5];
-const colorRed = [242, 7, 70];
-const colorBlue = [4, 196, 217];
-const colorDarkGreen = [2, 132, 95];
-const colorDarkYellow = [193, 127, 4];
-const colorDarkRed = [193, 5, 56];
-const colorDarkBlue = [3, 156, 173];
+const playerColor = {
+    Green: [3, 166, 120],
+    Yellow: [242, 159, 5],
+    Red: [242, 7, 70],
+    Blue: [4, 196, 217]
+}
 
-var tileWidth = 50;
-var tileHeight = 50;
-
+const playerColorDark = {
+    Green: [2, 132, 95],
+    Yellow: [193, 127, 4],
+    Red: [193, 5, 56],
+    Blue: [3, 156, 173]
+}
 
 function onHasteStart() {
     c = document.getElementById("canvas");
@@ -29,18 +32,6 @@ function onHasteStart() {
 
     tileWidth = c.width / numTilesX;
     tileHeight = c.height / numTilesY;
-
-    //drawBoard();
-
-    /*
-    c.onclick = function(ev) {
-        console.log(ev);
-        if (ev.button == 0) {
-            let field = posToField(ev.offsetX, ev.offsetY, "Yellow"); 
-            let tilePos = playerPosToTilePos("Yellow", field);
-            drawTiles([tilePos], drawPlayer, "Yellow");
-        }
-    }*/
 }
 
 function drawTiles(tiles, drawFunc, ...args) {
@@ -79,16 +70,9 @@ function drawStar(posX, posY) {
     ctx.stroke();
 }
 
-function drawPlayer(posX, posY, color = "Green") {
+function drawPlayer(posX, posY, player = "Green") {
     ctx.beginPath();
-
-    switch (color) {
-        case "Blue": ctx.strokeStyle = cssColor(...colorDarkBlue); break;
-        case "Red": ctx.strokeStyle = cssColor(...colorDarkRed); break;
-        case "Yellow": ctx.strokeStyle = cssColor(...colorDarkYellow); break;
-        default: ctx.strokeStyle = cssColor(...colorDarkGreen); break;
-    }
-
+    ctx.strokeStyle = cssColor(...playerColorDark[player]);
     ctx.lineWidth = 6;
 
     ctx.moveTo(posX + tileWidth / 2, posY + tileHeight * 1/4);
@@ -98,13 +82,13 @@ function drawPlayer(posX, posY, color = "Green") {
     ctx.stroke();
 }
 
-function drawDie(posX, posY, num) {
-    ctx.fillStyle = "#ffffff";
+function drawDice(posX, posY, num, color = [255, 255, 255]) {
+    ctx.fillStyle = cssColor(...color);
     ctx.font = Math.floor(tileWidth * 0.8) + "px Georgia";
     ctx.fillText(num.toString(), posX + tileWidth * 1/4, posY + tileHeight * 3/5, tileWidth);
 }
 
-var boardPositions = [
+const boardPositions = [
     [1, 6], [2, 6], [3, 6], [4, 6], [5, 6],
     [6, 5], [6, 4], [6, 3], [6, 2], [6, 1],
     [6, 0], [7, 0], [8, 0],
@@ -119,49 +103,38 @@ var boardPositions = [
     [0, 8], [0, 7], [0, 6]
 ];
 
-var greenHomePositions = [[1, 7], [2, 7], [3, 7], [4, 7], [5, 7], [6, 7]];
-var yellowHomePositions = [[7, 1], [7, 2], [7, 3], [7, 4], [7, 5], [7, 6]];
-var redHomePositions = [[13, 7], [12, 7], [11, 7], [10, 7], [9, 7], [8, 7]];
-var blueHomePositions = [[7, 13], [7, 12], [7, 11], [7, 10], [7, 9], [7, 8]];
-var homePositions = {
-    Green: greenHomePositions,
-    Yellow: yellowHomePositions,
-    Red: redHomePositions,
-    Blue: blueHomePositions,
+const homePositions = {
+    Green: [[1, 7], [2, 7], [3, 7], [4, 7], [5, 7], [6, 7]],
+    Yellow: [[7, 1], [7, 2], [7, 3], [7, 4], [7, 5], [7, 6]],
+    Red: [[13, 7], [12, 7], [11, 7], [10, 7], [9, 7], [8, 7]],
+    Blue: [[7, 13], [7, 12], [7, 11], [7, 10], [7, 9], [7, 8]],
 }
 
-var greenOutPositions = [[2, 2], [3, 2], [2, 3], [3, 3]];
-var yellowOutPositions = [[11, 2], [12, 2], [11, 3], [12, 3]];
-var blueOutPositions = [[2, 11], [3, 11], [2, 12], [3, 12]];
-var redOutPositions = [[11, 11], [12, 11], [11, 12], [12, 12]];
-var outPositions = {
-    Green: greenOutPositions,
-    Yellow: yellowOutPositions,
-    Blue: blueOutPositions,
-    Red: redOutPositions
+const outPositions = {
+    Green: [[2, 2], [3, 2], [2, 3], [3, 3]],
+    Yellow: [[11, 2], [12, 2], [11, 3], [12, 3]],
+    Blue: [[2, 11], [3, 11], [2, 12], [3, 12]],
+    Red: [[11, 11], [12, 11], [11, 12], [12, 12]]
 }
 
-var dicePositions =  [[7, 7]];
+const dicePositions =  [[7, 7]];
 
-var starCells = [5, 11, 18, 24, 31, 37, 44, 50];
-var globeCells = [0, 8, 13, 21, 26, 34, 39, 47];
+const starCells = [5, 11, 18, 24, 31, 37, 44, 50];
+const globeCells = [0, 8, 13, 21, 26, 34, 39, 47];
+
+const playerOffsets = {
+    Green: 13 * 0,
+    Yellow: 13 * 1,
+    Red: 13 * 2,
+    Blue: 13 * 3
+}
 
 function playerPosToTilePos(player, pos) {
-    let homePositions = [];
-    let offset = 0;
-
-    switch (player) {
-        case "Green": homePositions = greenHomePositions; offset = 13 * 0; break;
-        case "Yellow": homePositions = yellowHomePositions; offset = 13 * 1; break;
-        case "Red": homePositions = redHomePositions; offset = 13 * 2; break;
-        case "Blue": homePositions = blueHomePositions; offset = 13 * 3; break;
-    }
-
     if (pos > 50) {
-        return homePositions[pos - 51];
+        return homePositions[player][pos - 51];
     }
 
-    let newPos = (pos + offset) % 52;
+    let newPos = (pos + playerOffsets[player]) % 52;
     return boardPositions[newPos];
 }
 
@@ -179,10 +152,10 @@ function drawStaticBoard() {
 
     drawTiles(boardPositions, drawSolid, 255, 255, 255);
 
-    drawTiles([...greenHomePositions, ...greenOutPositions, [1, 6]], drawSolid, ...colorGreen);
-    drawTiles([...yellowHomePositions, ...yellowOutPositions, [8, 1]], drawSolid, ...colorYellow);
-    drawTiles([...redHomePositions, ...redOutPositions, [13, 8]], drawSolid, ...colorRed);
-    drawTiles([...blueHomePositions, ...blueOutPositions, [6, 13]], drawSolid, ...colorBlue);
+    drawTiles([...homePositions.Green, ...outPositions.Green, [1, 6]], drawSolid, ...playerColor.Green);
+    drawTiles([...homePositions.Yellow, ...outPositions.Yellow, [8, 1]], drawSolid, ...playerColor.Yellow);
+    drawTiles([...homePositions.Red, ...outPositions.Red, [13, 8]], drawSolid, ...playerColor.Red);
+    drawTiles([...homePositions.Blue, ...outPositions.Blue, [6, 13]], drawSolid, ...playerColor.Blue);
 
     drawTiles(globeCells.map((v, i) => boardPositions[v]), drawGlobe);
     drawTiles(starCells.map((v, i) => boardPositions[v]), drawStar);
@@ -195,7 +168,7 @@ function drawBoard(gameState, options, roll) {
 
     drawStaticBoard();
 
-    drawTiles(dicePositions, drawDie, roll);
+    drawTiles(dicePositions, drawDice, roll, playerColorDark[gameState.turn]);
 
     for (let player in gameState.pieces) {
         let playerPieces = gameState.pieces[player];
@@ -219,16 +192,12 @@ function posToField(posX, posY, player) {
     let tilePosStr = [tileX, tileY].toString();
 
     let toStrArr = (arr) => arr.map((v, i) => v.toString())
-    let field = toStrArr(boardPositions).indexOf(tilePosStr);
 
+    // Check if field is on board
+    let field = toStrArr(boardPositions).indexOf(tilePosStr);
     if (field != -1) {
         // Offset according to player
-        switch (player) {
-            case "Green":  field -= 13 * 0; break;
-            case "Yellow": field -= 13 * 1; break
-            case "Red":    field -= 13 * 2; break;
-            case "Blue":   field -= 13 * 3; break;
-        }
+        field -= playerOffsets[player];
 
         return (field + 52) % 52;
     }
@@ -239,7 +208,7 @@ function posToField(posX, posY, player) {
         return field + 51;
     }
 
-    //Check if field is in an out position
+    // Check if field is in an out position
     field = toStrArr(outPositions[player]).indexOf(tilePosStr);
     if (field != -1) {
         return -field-1;
