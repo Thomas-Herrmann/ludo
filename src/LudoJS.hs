@@ -204,7 +204,11 @@ initGameState player = GameState Roll player 3 pieceMap []
 
 
 play :: Player -> Elem -> IO ()
-play player canvasEl = (onEvent canvasEl Click clickHandler) >> return ()
+play player canvasEl = do
+    let initState = initGameState player
+    putGameState initState
+    drawBoardIO initState 
+    (onEvent canvasEl Click clickHandler) >> return ()
     where
         clickHandler (MouseData coords (Just MouseLeft) _) = do
             state <- getGameState
@@ -217,6 +221,12 @@ play player canvasEl = (onEvent canvasEl Click clickHandler) >> return ()
                 Nothing -> return ()
 
         clickHandler _ = return ()
+
+
+drawBoardIO :: GameState -> IO ()
+drawBoardIO state = draw state [] (-1)
+    where
+        draw = ffi "((gs, opts, rolls) => drawBoard(gs, opts, rolls))" :: GameState -> [Option] -> Int -> IO ()
 
 
 step :: Int -> Ludo ()
