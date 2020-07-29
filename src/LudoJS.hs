@@ -62,8 +62,8 @@ instance ToAny Piece where
 
 instance ToAny Stage where
     toAny Roll = toObject [("stage", toAny (toJSStr "Roll"))]
-    toAny (SelectPiece n) = toObject [("stage", toAny (toJSStr "SelectPiece")), ("pieceIndex", toAny n)]
-    toAny (SelectField n i) = toObject [("stage", toAny (toJSStr "SelectField")), ("pieceIndex", toAny n), ("fieldIndex", toAny i)]
+    toAny (SelectPiece n) = toObject [("stage", toAny (toJSStr "SelectPiece")), ("rollNumber", toAny n)]
+    toAny (SelectField n i) = toObject [("stage", toAny (toJSStr "SelectField")), ("rollNumber", toAny n), ("pieceIndex", toAny i)]
     toAny GameFinished = toObject [("stage", toAny (toJSStr "GameFinished"))]
 
 instance ToAny Option where
@@ -88,8 +88,8 @@ instance FromAny Stage where
     stateString <- (Foreign.get :: JSAny -> JSString -> IO JSString) any "stage"
     case stateString of
         "Roll" -> return Roll
-        "SelectPiece"  -> Foreign.get any "pieceIndex" >>= (\n -> return $ SelectPiece n)
-        "SelectField"  -> Foreign.get any "pieceIndex" >>= (\n -> Foreign.get any "fieldIndex" >>= (\i -> return $ SelectField n i))
+        "SelectPiece"  -> Foreign.get any "rollNumber" >>= (\n -> return $ SelectPiece n)
+        "SelectField"  -> Foreign.get any "rollNumber" >>= (\n -> Foreign.get any "pieceIndex" >>= (\i -> return $ SelectField n i))
         "GameFinished" -> return GameFinished   
 
 
