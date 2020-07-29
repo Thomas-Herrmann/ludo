@@ -270,7 +270,7 @@ function posToField(posX, posY, player) {
     // Check if field is in an out position
     field = toStrArr(outPositions[player]).indexOf(tilePosStr);
     if (field != -1) {
-        return -field-1;
+        return field - 4;
     }
 
     // Check if field is dice
