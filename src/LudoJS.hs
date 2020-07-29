@@ -147,13 +147,13 @@ removeFrom (piece@(m, _):pieces) n =
         else piece:(removeFrom pieces n)
 
 
-removeByCell :: [(Int, Piece)] -> Int -> [(Int, Piece)]
-removeByCell [] _ = []
-removeByCell (piece@(_, Out):pieces) i = piece:(removeFrom pieces i)
-removeByCell (piece@(_, Active j):pieces) i =
+outByCell :: [(Int, Piece)] -> Int -> [(Int, Piece)]
+outByCell [] _ = []
+outByCell (piece@(_, Out):pieces) i      = piece:(outByCell pieces i)
+outByCell (piece@(n, Active j):pieces) i =
     if i == j
-        then removeFrom pieces i
-        else piece:(removeFrom pieces i)
+        then (n, Out):outByCell pieces i
+        else piece:(outByCell pieces i)
 
 
 convertCell :: Player -> Int -> Player -> Int
@@ -517,7 +517,7 @@ eliminatedAt :: Player -> Int -> Ludo ()
 eliminatedAt color i = do
     state <- State.get
     let allPieces = pieces state
-    put state{ pieces = Map.insert Blue (removeByCell (allPieces ! Blue) i) allPieces }
+    put state{ pieces = Map.insert color (outByCell (allPieces ! color) i) allPieces }
 
 
 options :: Int -> Ludo [Option]
