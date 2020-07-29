@@ -12,5 +12,5 @@ copy html\ludo.html haste-out
 
 cd %workdir%
 
-hastec "--start=$HASTE_MAIN();" --out=../haste-out/hasteLudo.js --with-js=ludo.js --debug MainJS.hs
+hastec "--start=onHasteStart(); $HASTE_MAIN();" --out=../haste-out/hasteLudo.js --with-js=ludo.js --debug MainJS.hs
 

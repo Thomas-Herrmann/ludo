@@ -19,7 +19,7 @@ var tileWidth = 50;
 var tileHeight = 50;
 
 
-window.onload = function() {
+function onHasteStart() {
     c = document.getElementById("canvas");
     c.width = numTilesX * canvasScale;
     c.height = numTilesY * canvasScale;
@@ -30,8 +30,9 @@ window.onload = function() {
     tileWidth = c.width / numTilesX;
     tileHeight = c.height / numTilesY;
 
-    /*drawBoard();
+    drawBoard();
 
+    /*
     c.onclick = function(ev) {
         console.log(ev);
         if (ev.button == 0) {
@@ -128,6 +129,8 @@ var yellowOutPositions = [[11, 2], [12, 2], [11, 3], [12, 3]];
 var blueOutPositions = [[2, 11], [3, 11], [2, 12], [3, 12]];
 var redOutPositions = [[11, 11], [12, 11], [11, 12], [12, 12]];
 
+var dicePositions =  [[7, 7]];
+
 var starCells = [5, 11, 18, 24, 31, 37, 44, 50];
 var globeCells = [0, 8, 13, 21, 26, 34, 39, 47];
 
@@ -175,20 +178,15 @@ function drawStaticBoard() {
     
 }
 
-function drawBoard(gameState, options, rolls) {
+function drawBoard(gameState, options, roll) {
     drawStaticBoard();
-
-    console.log(gameState)
 
     drawTiles(greenOutPositions, drawPlayer, "Green");
     drawTiles(yellowOutPositions, drawPlayer, "Yellow");
     drawTiles(redOutPositions, drawPlayer, "Red");
     drawTiles(blueOutPositions, drawPlayer, "Blue");
 
-    drawTiles([[4, 4]], drawDie, 4);
-    drawTiles([[10, 4]], drawDie, 6);
-    drawTiles([[10, 10]], drawDie, 1);
-    drawTiles([[4, 10]], drawDie, 3);
+    drawTiles(dicePositions, drawDie, 0);
 
     drawTiles([playerPosToTilePos("Green", playerPos)], drawPlayer, "Green")
     drawTiles([playerPosToTilePos("Yellow", playerPos)], drawPlayer, "Yellow")
@@ -217,18 +215,28 @@ function posToField(posX, posY, player) {
         }
 
         return (field + 52) % 52;
-    } else {
-        // Check if field is in a home position
-        switch (player) {
-            case "Green":  field = toStrArr(greenHomePositions).indexOf(tilePosStr); break;
-            case "Yellow": field = toStrArr(yellowHomePositions).indexOf(tilePosStr); break;
-            case "Red":    field = toStrArr(redHomePositions).indexOf(tilePosStr); break;
-            case "Blue":   field = toStrArr(blueHomePositions).indexOf(tilePosStr); break;
-        }
+    }
+    
+    // Check if field is in a home position
+    switch (player) {
+        case "Green":  field = toStrArr(greenHomePositions).indexOf(tilePosStr); break;
+        case "Yellow": field = toStrArr(yellowHomePositions).indexOf(tilePosStr); break;
+        case "Red":    field = toStrArr(redHomePositions).indexOf(tilePosStr); break;
+        case "Blue":   field = toStrArr(blueHomePositions).indexOf(tilePosStr); break;
+    }
 
-        if (field != -1) {
-            return field + 51;
-        }
+    if (field != -1) {
+        return field + 51;
+    }
+
+    //Check if field is in an out position
+    //TODO
+
+    // Check if field is dice
+    field = toStrArr(dicePositions).indexOf(tilePosStr);
+
+    if (field != -1) {
+        return -5; // Clicked dice
     }
 
     // Field not found
