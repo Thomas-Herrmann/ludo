@@ -29,7 +29,7 @@ data Piece = Out | Active Int deriving (Eq)
 
 data Option = Play Int | Move Int Int deriving (Eq)
 
-data Stage = Roll | SelectPiece Int | SelectField Int Int | GameFinished deriving Show
+data Stage = Roll (Maybe Int) | SelectPiece Int | SelectField Int Int | GameFinished deriving Show
 
 data GameState = GameState {
                              stage :: Stage
@@ -61,10 +61,11 @@ instance ToAny Piece where
     toAny (Active i) = toObject [("piece", toAny (toJSStr "Active")), ("field", toAny i)]
 
 instance ToAny Stage where
-    toAny Roll = toObject [("stage", toAny (toJSStr "Roll"))]
-    toAny (SelectPiece n) = toObject [("stage", toAny (toJSStr "SelectPiece")), ("rollNumber", toAny n)]
+    toAny (Roll Nothing)    = toObject [("stage", toAny (toJSStr "Roll")), ("rollNumber", toAny ((-1) :: Int))]
+    toAny (Roll (Just num)) = toObject [("stage", toAny (toJSStr "Roll")), ("rollNumber", toAny num)]
+    toAny (SelectPiece n)   = toObject [("stage", toAny (toJSStr "SelectPiece")), ("rollNumber", toAny n)]
     toAny (SelectField n i) = toObject [("stage", toAny (toJSStr "SelectField")), ("rollNumber", toAny n), ("pieceIndex", toAny i)]
-    toAny GameFinished = toObject [("stage", toAny (toJSStr "GameFinished"))]
+    toAny GameFinished      = toObject [("stage", toAny (toJSStr "GameFinished"))]
 
 instance ToAny Option where
     toAny (Play n)   = toObject [("option", toAny (toJSStr "Play")), ("piece", toAny n)]
@@ -87,7 +88,7 @@ instance FromAny Stage where
     fromAny any = do
     stateString <- (Foreign.get :: JSAny -> JSString -> IO JSString) any "stage"
     case stateString of
-        "Roll" -> return Roll
+        "Roll" -> Foreign.get any "rollNumber" >>= (\n -> return $ Roll (if n == -1 then Nothing else Just n))
         "SelectPiece"  -> Foreign.get any "rollNumber" >>= (\n -> return $ SelectPiece n)
         "SelectField"  -> Foreign.get any "rollNumber" >>= (\n -> Foreign.get any "pieceIndex" >>= (\i -> return $ SelectField n i))
         "GameFinished" -> return GameFinished   
@@ -198,7 +199,7 @@ decrementNumRolls = do
 
 
 initGameState :: Player -> GameState
-initGameState player = GameState Roll player 3 pieceMap []
+initGameState player = GameState (Roll Nothing) player 3 pieceMap []
     where
         pieceMap = Map.fromList [(player, [(1, Out), (2, Out), (3, Out), (4, Out)]) | player <- [Blue, Green, Red, Yellow]]
 
@@ -233,11 +234,12 @@ step :: Int -> Ludo ()
 step i = do
     stage <- getStage
     case stage of
-        Roll -> when (isDiceField i) roll
+        Roll _ -> when (isDiceField i) roll
         SelectPiece num -> maybePieceIndex i >>= (\maybe -> when (maybe /= Nothing) $ selectPiece (fromJust maybe) num)
-        SelectField num n ->
-            if isActiveField i
-                then selectField n i num
+        SelectField num n -> when (isActiveField i) $ do 
+            success <- selectField n i num
+            if success
+                then whileM (skipsPlayer >>= (\skips -> getNumRolls >>= (\rolls -> return $ skips || rolls < 1))) nextTurn >> return ()
                 else setStage $ SelectPiece num
         GameFinished -> do
             starterIndex <- lift $ getStdRandom (randomR (1, 4))
@@ -288,7 +290,8 @@ drawBoard = do
 
         getRoll currentStage =
             case currentStage of
-                Roll -> -1 -- javascript friendly 'Nothing'
+                Roll (Just num)   -> num
+                Roll Nothing      -> -1 -- javascript friendly 'Nothing'
                 SelectPiece num   -> num
                 SelectField num _ -> num
 
@@ -302,25 +305,28 @@ selectPiece n num = do
         hasPiece ((m, _):pieces) = if m == n then True else hasPiece pieces 
 
 
-selectField :: Int -> Int -> Int -> Ludo ()
+selectField :: Int -> Int -> Int -> Ludo Bool
 selectField n i num = do
     pieces <- playingPieces
     optionList <- options num
     let option = requestToOption pieces
-    when (option `elem` optionList) $ do
-        applyOption option
-        player <- playing
-        hasFinished <- colorHasFinished player
-        when hasFinished $ updateWinOrder player
-        gameFinished <- gameHasFinished
-        if gameFinished
-            then do
-                state <- State.get
-                winOrder <- getWinOrder
-                put state{ finished = winOrder }
-                setStage GameFinished
-            else setStage Roll
-        setStage $ if gameFinished then GameFinished else Roll
+    if option `elem` optionList
+        then do 
+            applyOption option
+            player <- playing
+            hasFinished <- colorHasFinished player
+            when hasFinished $ updateWinOrder player
+            gameFinished <- gameHasFinished
+            if gameFinished
+                then do
+                    state <- State.get
+                    winOrder <- getWinOrder
+                    put state{ finished = winOrder }
+                    setStage GameFinished
+                else setStage $ Roll (Just num)
+            setStage $ if gameFinished then GameFinished else Roll $ Just num
+            return True
+        else return False
     where
         requestToOption [] = error "piece does not exist"
         requestToOption ((m, piece):pieces) =
@@ -333,12 +339,11 @@ selectField n i num = do
 
 roll :: Ludo ()
 roll = do
-    whileM (skipsPlayer >>= (\skips -> getNumRolls >>= (\rolls -> return $ skips || rolls < 1))) nextTurn
     player <- playing
     num <- lift $ getStdRandom (randomR (1, 6))
     optionList <- options num
     case optionList of
-        [] -> decrementNumRolls
+        [] -> decrementNumRolls >> whileM (getNumRolls >>= (\rolls -> return $ rolls < 1)) nextTurn >> (setStage $ Roll (Just num))
         _  -> (setStage $ SelectPiece num) >> (setNumRolls $ if num == 6 then 1 else 0)
 
 
