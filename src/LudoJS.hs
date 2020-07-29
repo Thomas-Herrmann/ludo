@@ -25,7 +25,7 @@ import Data.Maybe
 
 data Player = Blue | Green | Red | Yellow deriving (Eq, Ord, Show)
 
-data Piece = Out | Active Int
+data Piece = Out | Active Int deriving (Eq)
 
 data Option = Play Int | Move Int Int deriving (Eq)
 
@@ -234,8 +234,8 @@ step i = do
     stage <- getStage
     case stage of
         Roll -> when (isDiceField i) roll
-        SelectPiece num -> when (isOutField i) $ selectPiece (fieldToPieceIndex i) num
-        SelectField num n -> 
+        SelectPiece num -> maybePieceIndex i >>= (\maybe -> when (maybe /= Nothing) $ selectPiece (fromJust maybe) num)
+        SelectField num n ->
             if isActiveField i
                 then selectField n i num
                 else setStage $ SelectPiece num
@@ -243,7 +243,24 @@ step i = do
             starterIndex <- lift $ getStdRandom (randomR (1, 4))
             put $ initGameState (numToColor starterIndex)
     drawBoard
-    
+
+
+maybePieceIndex :: Int -> Ludo (Maybe Int)
+maybePieceIndex i
+    | i >= -4 && i <= -1 = do
+        pieces <- playingPieces
+        let n = i + 5
+        return $ Prelude.foldr (\(m, piece) -> (\maybe -> if m == n && piece == Out then Just n else maybe)) Nothing pieces
+    | i >= 0 && i <= 55 = do
+        pieces <- playingPieces
+        let folder (n, piece) maybe =
+                case piece of
+                    Out      -> maybe
+                    Active j -> if i == j then Just n else maybe
+        return $ Prelude.foldr folder Nothing pieces
+    | otherwise = return Nothing
+
+
 
 getGameState :: IO GameState
 getGameState = ffi "(() => gameState)"
@@ -310,7 +327,7 @@ selectField n i num = do
             if m == n
                 then case piece of
                         Out      -> Play m
-                        Active i -> Move n i
+                        Active _ -> Move n i
                 else requestToOption pieces
 
 
