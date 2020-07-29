@@ -440,8 +440,7 @@ move n i = do
                         else (n, Active newCell):(removeFrom colorPieces n)
             put state{ pieces = Map.insert player updatedPieces allPieces }
             player `movesTo` i
-            active <- player `occupies` i
-            when active (player `movesTo` newCell)
+            player `movesTo` newCell
           | i `elem` globeCells -> do
             let updatedPieces = (n, Active i):(removeFrom colorPieces n)
             put state{ pieces = Map.insert player updatedPieces allPieces }
