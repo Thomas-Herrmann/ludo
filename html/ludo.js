@@ -24,6 +24,8 @@ const playerColorDark = {
 }
 
 const iconColor = [80, 80, 80];
+const boardColor = [230, 230, 230];
+const diceColor = boardColor;
 
 function onHasteStart() {
     c = document.getElementById("canvas");
@@ -111,7 +113,7 @@ function drawPlayer(posX, posY, player = "Green") {
 }
 
 function drawDice(posX, posY, num) {
-    ctx.fillStyle = cssColor(255, 255, 255);
+    ctx.fillStyle = cssColor(...diceColor);
     ctx.fillRect(posX + tileWidth * 0.15, posY + tileHeight * 0.15, tileWidth * 0.7, tileHeight * 0.7)
 
     ctx.fillStyle = cssColor(...iconColor);
@@ -234,16 +236,15 @@ function playerPosToTilePos(player, pos) {
 }
 
 function drawStaticBoard() {
-    ctx.fillStyle = "#404040";
-    ctx.fillRect(0, 0, c.width, c.height);
+    ctx.clearRect(0, 0, c.width, c.height);
 
-    for (let x = 0; x < numTilesX; x++) {
+    /*for (let x = 0; x < numTilesX; x++) {
         for (let y = 0; y < numTilesY; y++) {
-            drawTiles([[x, y]], drawSolid, 100, 100, 100)
+            drawTiles([[x, y]], drawSolid, 100, 100, 100, 0);
         }
-    }
+    }*/
 
-    drawTiles(boardPositions, drawSolid, 255, 255, 255);
+    drawTiles(boardPositions, drawSolid, ...boardColor);
 
     drawTiles([...homePositions.Green, ...outPositions.Green, startPosition.Green], drawSolid, ...playerColor.Green);
     drawTiles([...homePositions.Yellow, ...outPositions.Yellow, startPosition.Yellow], drawSolid, ...playerColor.Yellow);
