@@ -82,13 +82,111 @@ function drawPlayer(posX, posY, player = "Green") {
     ctx.stroke();
 }
 
-function drawDice(posX, posY, num, color = [255, 255, 255]) {
-    ctx.fillStyle = cssColor(...color);
-    ctx.font = Math.floor(tileWidth * 0.8) + "px Georgia";
-    ctx.fillText(num.toString(), posX + tileWidth * 1/4, posY + tileHeight * 3/5, tileWidth);
+function drawDice(posX, posY, num) {
+    ctx.fillStyle = cssColor(255, 255, 255);
+    ctx.fillRect(posX + tileWidth * 0.15, posY + tileHeight * 0.15, tileWidth * 0.7, tileHeight * 0.7)
+
+    ctx.fillStyle = cssColor(0, 0, 0);
+
+    switch(num) {
+        case -1:
+            ctx.font = Math.floor(tileWidth * 0.6) + "px Georgia";
+            ctx.fillText("?", posX + tileWidth * 0.35, posY + tileHeight * 0.7, tileWidth);
+            break;
+        case 1:
+            ctx.beginPath();
+            ctx.arc(posX + tileWidth * 0.5, posY + tileHeight * 0.5, tileWidth * 0.08, 0, 2 * Math.PI);
+            ctx.fill();
+            break;
+        case 2:
+            ctx.beginPath();
+            ctx.arc(posX + tileWidth * 0.3, posY + tileHeight * 0.3, tileWidth * 0.08, 0, 2 * Math.PI);
+            ctx.fill();
+
+            ctx.beginPath();
+            ctx.arc(posX + tileWidth * 0.7, posY + tileHeight * 0.7, tileWidth * 0.08, 0, 2 * Math.PI);
+            ctx.fill();
+            break;
+        case 3:
+            ctx.beginPath();
+            ctx.arc(posX + tileWidth * 0.3, posY + tileHeight * 0.3, tileWidth * 0.08, 0, 2 * Math.PI);
+            ctx.fill();
+
+            ctx.beginPath();
+            ctx.arc(posX + tileWidth * 0.5, posY + tileHeight * 0.5, tileWidth * 0.08, 0, 2 * Math.PI);
+            ctx.fill();
+
+            ctx.beginPath();
+            ctx.arc(posX + tileWidth * 0.7, posY + tileHeight * 0.7, tileWidth * 0.08, 0, 2 * Math.PI);
+            ctx.fill();
+            break;
+        case 4:
+            ctx.beginPath();
+            ctx.arc(posX + tileWidth * 0.3, posY + tileHeight * 0.3, tileWidth * 0.08, 0, 2 * Math.PI);
+            ctx.fill();
+
+            ctx.beginPath();
+            ctx.arc(posX + tileWidth * 0.7, posY + tileHeight * 0.7, tileWidth * 0.08, 0, 2 * Math.PI);
+            ctx.fill();
+
+            ctx.beginPath();
+            ctx.arc(posX + tileWidth * 0.3, posY + tileHeight * 0.7, tileWidth * 0.08, 0, 2 * Math.PI);
+            ctx.fill();
+
+            ctx.beginPath();
+            ctx.arc(posX + tileWidth * 0.7, posY + tileHeight * 0.3, tileWidth * 0.08, 0, 2 * Math.PI);
+            ctx.fill();
+            break;
+        case 5:
+            ctx.beginPath();
+            ctx.arc(posX + tileWidth * 0.3, posY + tileHeight * 0.3, tileWidth * 0.08, 0, 2 * Math.PI);
+            ctx.fill();
+
+            ctx.beginPath();
+            ctx.arc(posX + tileWidth * 0.7, posY + tileHeight * 0.7, tileWidth * 0.08, 0, 2 * Math.PI);
+            ctx.fill();
+
+            ctx.beginPath();
+            ctx.arc(posX + tileWidth * 0.3, posY + tileHeight * 0.7, tileWidth * 0.08, 0, 2 * Math.PI);
+            ctx.fill();
+
+            ctx.beginPath();
+            ctx.arc(posX + tileWidth * 0.7, posY + tileHeight * 0.3, tileWidth * 0.08, 0, 2 * Math.PI);
+            ctx.fill();
+
+            ctx.beginPath();
+            ctx.arc(posX + tileWidth * 0.5, posY + tileHeight * 0.5, tileWidth * 0.08, 0, 2 * Math.PI);
+            ctx.fill();
+            break;
+        case 6:
+            ctx.beginPath();
+            ctx.arc(posX + tileWidth * 0.3, posY + tileHeight * 0.3, tileWidth * 0.08, 0, 2 * Math.PI);
+            ctx.fill();
+
+            ctx.beginPath();
+            ctx.arc(posX + tileWidth * 0.7, posY + tileHeight * 0.7, tileWidth * 0.08, 0, 2 * Math.PI);
+            ctx.fill();
+
+            ctx.beginPath();
+            ctx.arc(posX + tileWidth * 0.3, posY + tileHeight * 0.7, tileWidth * 0.08, 0, 2 * Math.PI);
+            ctx.fill();
+
+            ctx.beginPath();
+            ctx.arc(posX + tileWidth * 0.7, posY + tileHeight * 0.3, tileWidth * 0.08, 0, 2 * Math.PI);
+            ctx.fill();
+
+            ctx.beginPath();
+            ctx.arc(posX + tileWidth * 0.3, posY + tileHeight * 0.5, tileWidth * 0.08, 0, 2 * Math.PI);
+            ctx.fill();
+
+            ctx.beginPath();
+            ctx.arc(posX + tileWidth * 0.7, posY + tileHeight * 0.5, tileWidth * 0.08, 0, 2 * Math.PI);
+            ctx.fill();
+    }
 }
 
-function drawHighlight(posX, posY, color = [200, 200, 200]) {
+function drawHighlight(posX, posY, gameState) {
+    let color = playerColorDark[gameState.turn]
     ctx.beginPath();
     ctx.strokeStyle = cssColor(...color);
     ctx.lineWidth = 6;
@@ -189,7 +287,7 @@ function drawBoard(gameState, options, roll) {
     drawStaticBoard();
 
     // Draw dice
-    drawTiles(dicePositions, drawDice, roll, playerColorDark[gameState.turn]);
+    drawTiles(dicePositions, drawDice, roll);
 
     // Draw players
     for (let player in gameState.pieces) {
@@ -211,17 +309,17 @@ function drawBoard(gameState, options, roll) {
     let player = gameState.turn;
     switch (gameState.stage.stage) {
         case "Roll":
-            drawTiles(dicePositions, drawHighlight);
+            drawTiles(dicePositions, drawHighlight, gameState);
         break;
 
         case "SelectPiece":
             for (let option of options) {
                 if (option.option == "Play") {
-                    drawTiles([outPositions[player][option.piece - 1]], drawHighlight);
+                    drawTiles([outPositions[player][option.piece - 1]], drawHighlight, gameState);
                 }
                 else if (option.option == "Move") {
                     let pos = gameState.pieces[player][option.piece].field;
-                    drawTiles([playerPosToTilePos(player, pos)], drawHighlight);
+                    drawTiles([playerPosToTilePos(player, pos)], drawHighlight, gameState);
                 }
             }
 
@@ -231,10 +329,10 @@ function drawBoard(gameState, options, roll) {
             for (let option of options) {
                 if (option.piece == gameState.stage.pieceIndex) {
                     if (option.option == "Play") {
-                        drawTiles([startPosition[player]], drawHighlight);
+                        drawTiles([startPosition[player]], drawHighlight, gameState);
                     }
                     else if (option.option == "Move") {
-                        drawTiles([playerPosToTilePos(player, option.field)], drawHighlight);
+                        drawTiles([playerPosToTilePos(player, option.field)], drawHighlight, gameState);
                     }
                 }
             }

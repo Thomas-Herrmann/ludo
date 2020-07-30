@@ -172,7 +172,7 @@ nextTurn = do
     let previous = turn state
     let nextPlayer = numToColor $ ((colorToNum previous) `mod` 4) + 1
     let nextRolls = if Prelude.foldr outCheck True ((pieces state) ! nextPlayer) then 3 else 1
-    put state{ turn = nextPlayer, numRolls = nextRolls }
+    put state{ turn = nextPlayer, numRolls = nextRolls, stage = (Roll Nothing) }
 
     where
         outCheck (n, Out) True = True
@@ -343,7 +343,7 @@ roll = do
     num <- lift $ getStdRandom (randomR (1, 6))
     optionList <- options num
     case optionList of
-        [] -> decrementNumRolls >> whileM (getNumRolls >>= (\rolls -> return $ rolls < 1)) nextTurn >> (setStage $ Roll (Just num))
+        [] -> setStage (Roll (Just num)) >> decrementNumRolls >> whileM (skipsPlayer >>= (\skips -> getNumRolls >>= (\rolls -> return $ skips || rolls < 1))) nextTurn >> return ()
         _  -> (setStage $ SelectPiece num) >> (setNumRolls $ if num == 6 then 1 else 0)
 
 
