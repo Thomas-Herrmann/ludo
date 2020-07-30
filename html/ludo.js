@@ -4,7 +4,8 @@ var c, ctx;
 var tileWidth = 50;
 var tileHeight = 50;
 
-const canvasScale = 50;
+var drawGameState, drawOptions, drawRoll;
+
 const numTilesX = 15;
 const numTilesY = 15;
 
@@ -22,16 +23,26 @@ const playerColorDark = {
     Blue: [3, 156, 173]
 }
 
+
 function onHasteStart() {
     c = document.getElementById("canvas");
-    c.width = numTilesX * canvasScale;
-    c.height = numTilesY * canvasScale;
+    c.width = c.scrollWidth;
+    c.height = c.scrollHeight;
     ctx = c.getContext("2d");
 
     ctx.imageSmoothingEnabled = false;
 
     tileWidth = c.width / numTilesX;
     tileHeight = c.height / numTilesY;
+
+    window.onresize = function(event) {    
+        c.width = c.scrollWidth;
+        c.height = c.scrollHeight;
+        tileWidth = c.width / numTilesX;
+        tileHeight = c.height / numTilesY;
+
+        drawBoard(drawGameState, drawOptions, drawRoll);
+    };
 }
 
 function drawTiles(tiles, drawFunc, ...args) {
@@ -48,7 +59,7 @@ function cssColor(r, g, b) {
     return "rgb(" + r + "," + g + "," + b + ")";
 }
 
-function drawSolid(posX, posY, r, g, b, border = 1) {
+function drawSolid(posX, posY, r, g, b, border = (tileWidth * 0.015)) {
     ctx.fillStyle = cssColor(r, g, b);
     ctx.fillRect(posX + border, posY + border, tileWidth - border * 2, tileHeight - border * 2);
 }
@@ -56,7 +67,7 @@ function drawSolid(posX, posY, r, g, b, border = 1) {
 function drawGlobe(posX, posY) {
     ctx.beginPath();
     ctx.strokeStyle = "#808080"
-    ctx.lineWidth = 3;
+    ctx.lineWidth = tileWidth * 0.05;
     ctx.arc(posX + tileWidth / 2, posY + tileHeight / 2, tileWidth / 2.5, 0, Math.PI*2);
     ctx.stroke();
 }
@@ -64,7 +75,7 @@ function drawGlobe(posX, posY) {
 function drawStar(posX, posY) {
     ctx.beginPath();
     ctx.strokeStyle = "#808080"
-    ctx.lineWidth = 3;
+    ctx.lineWidth = tileWidth * 0.05;
     ctx.moveTo(posX, posY);
     ctx.lineTo(posX + tileWidth, posY + tileHeight);
     ctx.stroke();
@@ -73,7 +84,7 @@ function drawStar(posX, posY) {
 function drawPlayer(posX, posY, player = "Green") {
     ctx.beginPath();
     ctx.strokeStyle = cssColor(...playerColorDark[player]);
-    ctx.lineWidth = 6;
+    ctx.lineWidth = tileWidth * 0.1;
 
     ctx.moveTo(posX + tileWidth / 2, posY + tileHeight * 1/4);
     ctx.lineTo(posX + tileWidth * 1/4, posY + tileHeight * 3/4);
@@ -189,7 +200,7 @@ function drawHighlight(posX, posY, gameState) {
     let color = playerColorDark[gameState.turn]
     ctx.beginPath();
     ctx.strokeStyle = cssColor(...color);
-    ctx.lineWidth = 6;
+    ctx.lineWidth = tileWidth * 0.1;
     
     ctx.moveTo(posX, posY);
     ctx.lineTo(posX + tileWidth, posY);
@@ -280,9 +291,10 @@ function drawStaticBoard() {
 }
 
 function drawBoard(gameState, options, roll) {
-    console.log(gameState);
-    console.log(options);
-    console.log(roll);
+
+    drawGameState = gameState; // save for window resize
+    drawOptions = options;
+    drawRoll = roll;
 
     drawStaticBoard();
 
@@ -347,9 +359,9 @@ function posToField(posX, posY, player) {
     let tileX = Math.floor(posX / tileWidth);
     let tileY = Math.floor(posY / tileHeight);
     let tilePosStr = [tileX, tileY].toString();
-
+ 
     let toStrArr = (arr) => arr.map((v, i) => v.toString())
-
+    
     // Check if field is on board
     let field = toStrArr(boardPositions).indexOf(tilePosStr);
     if (field != -1) {
