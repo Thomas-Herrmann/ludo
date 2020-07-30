@@ -88,105 +88,54 @@ function drawDice(posX, posY, num) {
 
     ctx.fillStyle = cssColor(0, 0, 0);
 
+    function drawDot(mulX, mulY) {
+        ctx.beginPath();
+        ctx.arc(posX + tileWidth * mulX, posY + tileHeight * mulY, tileWidth * 0.08, 0, 2 * Math.PI);
+        ctx.fill();
+    }
+
     switch(num) {
         case -1:
             ctx.font = Math.floor(tileWidth * 0.6) + "px Georgia";
             ctx.fillText("?", posX + tileWidth * 0.35, posY + tileHeight * 0.7, tileWidth);
             break;
         case 1:
-            ctx.beginPath();
-            ctx.arc(posX + tileWidth * 0.5, posY + tileHeight * 0.5, tileWidth * 0.08, 0, 2 * Math.PI);
-            ctx.fill();
+            drawDot(0.5, 0.5);
             break;
         case 2:
-            ctx.beginPath();
-            ctx.arc(posX + tileWidth * 0.3, posY + tileHeight * 0.3, tileWidth * 0.08, 0, 2 * Math.PI);
-            ctx.fill();
-
-            ctx.beginPath();
-            ctx.arc(posX + tileWidth * 0.7, posY + tileHeight * 0.7, tileWidth * 0.08, 0, 2 * Math.PI);
-            ctx.fill();
+            drawDot(0.3, 0.3);
+            drawDot(0.7, 0.7);
             break;
         case 3:
-            ctx.beginPath();
-            ctx.arc(posX + tileWidth * 0.3, posY + tileHeight * 0.3, tileWidth * 0.08, 0, 2 * Math.PI);
-            ctx.fill();
-
-            ctx.beginPath();
-            ctx.arc(posX + tileWidth * 0.5, posY + tileHeight * 0.5, tileWidth * 0.08, 0, 2 * Math.PI);
-            ctx.fill();
-
-            ctx.beginPath();
-            ctx.arc(posX + tileWidth * 0.7, posY + tileHeight * 0.7, tileWidth * 0.08, 0, 2 * Math.PI);
-            ctx.fill();
+            drawDot(0.3, 0.3);
+            drawDot(0.5, 0.5);
+            drawDot(0.7, 0.7);
             break;
         case 4:
-            ctx.beginPath();
-            ctx.arc(posX + tileWidth * 0.3, posY + tileHeight * 0.3, tileWidth * 0.08, 0, 2 * Math.PI);
-            ctx.fill();
-
-            ctx.beginPath();
-            ctx.arc(posX + tileWidth * 0.7, posY + tileHeight * 0.7, tileWidth * 0.08, 0, 2 * Math.PI);
-            ctx.fill();
-
-            ctx.beginPath();
-            ctx.arc(posX + tileWidth * 0.3, posY + tileHeight * 0.7, tileWidth * 0.08, 0, 2 * Math.PI);
-            ctx.fill();
-
-            ctx.beginPath();
-            ctx.arc(posX + tileWidth * 0.7, posY + tileHeight * 0.3, tileWidth * 0.08, 0, 2 * Math.PI);
-            ctx.fill();
+            drawDot(0.3, 0.3);
+            drawDot(0.7, 0.7);
+            drawDot(0.3, 0.7);
+            drawDot(0.7, 0.3);
             break;
         case 5:
-            ctx.beginPath();
-            ctx.arc(posX + tileWidth * 0.3, posY + tileHeight * 0.3, tileWidth * 0.08, 0, 2 * Math.PI);
-            ctx.fill();
-
-            ctx.beginPath();
-            ctx.arc(posX + tileWidth * 0.7, posY + tileHeight * 0.7, tileWidth * 0.08, 0, 2 * Math.PI);
-            ctx.fill();
-
-            ctx.beginPath();
-            ctx.arc(posX + tileWidth * 0.3, posY + tileHeight * 0.7, tileWidth * 0.08, 0, 2 * Math.PI);
-            ctx.fill();
-
-            ctx.beginPath();
-            ctx.arc(posX + tileWidth * 0.7, posY + tileHeight * 0.3, tileWidth * 0.08, 0, 2 * Math.PI);
-            ctx.fill();
-
-            ctx.beginPath();
-            ctx.arc(posX + tileWidth * 0.5, posY + tileHeight * 0.5, tileWidth * 0.08, 0, 2 * Math.PI);
-            ctx.fill();
+            drawDot(0.3, 0.3);
+            drawDot(0.7, 0.7);
+            drawDot(0.3, 0.7);
+            drawDot(0.7, 0.3);
+            drawDot(0.5, 0.5);
             break;
         case 6:
-            ctx.beginPath();
-            ctx.arc(posX + tileWidth * 0.3, posY + tileHeight * 0.3, tileWidth * 0.08, 0, 2 * Math.PI);
-            ctx.fill();
-
-            ctx.beginPath();
-            ctx.arc(posX + tileWidth * 0.7, posY + tileHeight * 0.7, tileWidth * 0.08, 0, 2 * Math.PI);
-            ctx.fill();
-
-            ctx.beginPath();
-            ctx.arc(posX + tileWidth * 0.3, posY + tileHeight * 0.7, tileWidth * 0.08, 0, 2 * Math.PI);
-            ctx.fill();
-
-            ctx.beginPath();
-            ctx.arc(posX + tileWidth * 0.7, posY + tileHeight * 0.3, tileWidth * 0.08, 0, 2 * Math.PI);
-            ctx.fill();
-
-            ctx.beginPath();
-            ctx.arc(posX + tileWidth * 0.3, posY + tileHeight * 0.5, tileWidth * 0.08, 0, 2 * Math.PI);
-            ctx.fill();
-
-            ctx.beginPath();
-            ctx.arc(posX + tileWidth * 0.7, posY + tileHeight * 0.5, tileWidth * 0.08, 0, 2 * Math.PI);
-            ctx.fill();
+            drawDot(0.3, 0.3);
+            drawDot(0.7, 0.7);
+            drawDot(0.3, 0.7);
+            drawDot(0.7, 0.3);
+            drawDot(0.3, 0.5);
+            drawDot(0.7, 0.5);
+            break;
     }
 }
 
-function drawHighlight(posX, posY, gameState) {
-    let color = playerColorDark[gameState.turn]
+function drawHighlight(posX, posY, color = [255, 255, 255]) {
     ctx.beginPath();
     ctx.strokeStyle = cssColor(...color);
     ctx.lineWidth = 6;
@@ -256,8 +205,6 @@ function playerPosToTilePos(player, pos) {
     return boardPositions[newPos];
 }
 
-var playerPos = 0;
-
 function drawStaticBoard() {
     ctx.fillStyle = "#404040";
     ctx.fillRect(0, 0, c.width, c.height);
@@ -280,10 +227,6 @@ function drawStaticBoard() {
 }
 
 function drawBoard(gameState, options, roll) {
-    console.log(gameState);
-    console.log(options);
-    console.log(roll);
-
     drawStaticBoard();
 
     // Draw dice
@@ -309,30 +252,29 @@ function drawBoard(gameState, options, roll) {
     let player = gameState.turn;
     switch (gameState.stage.stage) {
         case "Roll":
-            drawTiles(dicePositions, drawHighlight, gameState);
+            drawTiles(dicePositions, drawHighlight, playerColorDark[player]);
         break;
 
         case "SelectPiece":
             for (let option of options) {
                 if (option.option == "Play") {
-                    drawTiles([outPositions[player][option.piece - 1]], drawHighlight, gameState);
+                    drawTiles([outPositions[player][option.piece - 1]], drawHighlight, playerColorDark[player]);
                 }
                 else if (option.option == "Move") {
                     let pos = gameState.pieces[player][option.piece].field;
-                    drawTiles([playerPosToTilePos(player, pos)], drawHighlight, gameState);
+                    drawTiles([playerPosToTilePos(player, pos)], drawHighlight, playerColorDark[player]);
                 }
             }
-
         break;
 
         case "SelectField":
             for (let option of options) {
                 if (option.piece == gameState.stage.pieceIndex) {
                     if (option.option == "Play") {
-                        drawTiles([startPosition[player]], drawHighlight, gameState);
+                        drawTiles([startPosition[player]], drawHighlight, playerColorDark[player]);
                     }
                     else if (option.option == "Move") {
-                        drawTiles([playerPosToTilePos(player, option.field)], drawHighlight, gameState);
+                        drawTiles([playerPosToTilePos(player, option.field)], drawHighlight, playerColorDark[player]);
                     }
                 }
             }
