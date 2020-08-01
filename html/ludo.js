@@ -38,13 +38,17 @@ function onHasteStart() {
     tileWidth = c.width / numTilesX;
     tileHeight = c.height / numTilesY;
 
+    function drawBoardPrev() {
+        drawBoard(drawGameState, drawOptions, drawRoll);
+    }
+
     window.onresize = function(event) {    
         c.width = c.scrollWidth;
         c.height = c.scrollHeight;
         tileWidth = c.width / numTilesX;
         tileHeight = c.height / numTilesY;
 
-        drawBoard(drawGameState, drawOptions, drawRoll);
+        requestAnimationFrame(drawBoardPrev);
     };
 }
 
@@ -118,17 +122,56 @@ function drawPlayer(posX, posY, player, gameState) {
     ctx.fillText(numPieces.toString(), posX + tileWidth * 0.4, posY + tileHeight * 0.62, tileWidth);
 }
 
+
+function drawDiceAnimation(gameState, options, roll, prevRoll) {
+    let posX = dicePositions[0][0] * tileWidth;
+    let posY = dicePositions[0][1] * tileHeight;
+
+    let angle = 0.0;
+    let frameCount = 0;
+
+    function animation() {
+        ctx.setTransform(1, 0, 0, 1, 0, 0);
+        ctx.clearRect(posX, posY, tileWidth, tileHeight);
+        
+        let transX = posX + tileWidth * 0.5;
+        let transY = posY + tileHeight * 0.5;
+
+        ctx.translate(transX, transY);
+        ctx.rotate(angle);
+        ctx.translate(-transX, -transY);
+
+        drawDice(posX, posY, prevRoll);
+
+        if (frameCount < 100) {
+            ++frameCount;
+            angle += (2 * Math.PI) / 100;
+            requestAnimationFrame(animation);
+        }
+        else {
+            ctx.setTransform(1, 0, 0, 1, 0, 0);
+            drawBoard(drawGameState, drawOptions, drawRoll);
+        }
+    }
+
+    drawGameState = gameState;
+    drawOptions = options;
+    drawRoll = roll;
+    requestAnimationFrame(animation);
+}
+
+
 function drawDice(posX, posY, num) {
-    ctx.fillStyle = cssColor(...diceColor);
-    ctx.fillRect(posX + tileWidth * 0.15, posY + tileHeight * 0.15, tileWidth * 0.7, tileHeight * 0.7)
-
-    ctx.fillStyle = cssColor(...iconColor);
-
+    
     function drawDot(mulX, mulY) {
         ctx.beginPath();
         ctx.arc(posX + tileWidth * mulX, posY + tileHeight * mulY, tileWidth * 0.08, 0, 2 * Math.PI);
         ctx.fill();
     }
+
+    ctx.fillStyle = cssColor(...diceColor);
+    ctx.fillRect(posX + tileWidth * 0.15, posY + tileHeight * 0.15, tileWidth * 0.7, tileHeight * 0.7)
+    ctx.fillStyle = cssColor(...iconColor);
 
     switch(num) {
         case -1:
@@ -176,12 +219,7 @@ function drawHighlight(posX, posY, color = [255, 255, 255]) {
     ctx.strokeStyle = cssColor(...color);
     ctx.lineWidth = tileWidth * 0.1;
     
-    ctx.moveTo(posX, posY);
-    ctx.lineTo(posX + tileWidth, posY);
-    ctx.lineTo(posX + tileWidth, posY + tileHeight);
-    ctx.lineTo(posX, posY + tileHeight)
-    ctx.lineTo(posX, posY);
-    ctx.stroke();
+    ctx.strokeRect(posX + tileWidth * 0.05, posY + tileHeight * 0.05, tileWidth * 0.9, tileHeight * 0.9);
 }
 
 const boardPositions = [
@@ -266,6 +304,8 @@ function drawBoard(gameState, options, roll) {
     drawGameState = gameState; // save for window resize
     drawOptions = options;
     drawRoll = roll;
+
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
 
     drawStaticBoard();
 

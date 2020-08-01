@@ -236,16 +236,17 @@ step i = do
     stage <- getStage
     case stage of
         Roll _ -> when (isDiceField i) roll
-        SelectPiece num -> maybePieceIndex i >>= (\maybe -> when (maybe /= Nothing) $ selectPiece (fromJust maybe) num)
+        SelectPiece num -> maybePieceIndex i >>= (\maybe -> when (maybe /= Nothing) $ selectPiece (fromJust maybe) num) >> drawBoard
         SelectField num n -> when (isActiveField i) $ do 
             success <- selectField n i num
             if success
                 then whileM (skipsPlayer >>= (\skips -> getNumRolls >>= (\rolls -> return $ skips || rolls < 1))) nextTurn >> return ()
                 else setStage $ SelectPiece num
+            drawBoard
         GameFinished -> do
             starterIndex <- lift $ getStdRandom (randomR (1, 4))
             put $ initGameState (numToColor starterIndex)
-    drawBoard
+            drawBoard
 
 
 numPiecesAt :: GameState -> Player -> Int -> IO Int
@@ -305,12 +306,14 @@ drawBoard = do
     where
         draw = ffi "((gs, opts, rolls) => drawBoard(gs, opts, rolls))" :: GameState -> [Option] -> Int -> IO ()
 
-        getRoll currentStage =
-            case currentStage of
-                Roll (Just num)   -> num
-                Roll Nothing      -> -1 -- javascript friendly 'Nothing'
-                SelectPiece num   -> num
-                SelectField num _ -> num
+
+getRoll :: Stage -> Int
+getRoll currentStage =
+    case currentStage of
+        Roll (Just num)   -> num
+        Roll Nothing      -> -1 -- javascript friendly 'Nothing'
+        SelectPiece num   -> num
+        SelectField num _ -> num
 
 
 selectPiece :: Int -> Int -> Ludo ()
@@ -356,12 +359,26 @@ selectField n i num = do
 
 roll :: Ludo ()
 roll = do
+    prevRoll <- getPrevNum
+    state <- State.get
     player <- playing
     num <- lift $ getStdRandom (randomR (1, 6))
     optionList <- options num
     case optionList of
         [] -> setStage (Roll (Just num)) >> decrementNumRolls >> whileM (skipsPlayer >>= (\skips -> getNumRolls >>= (\rolls -> return $ skips || rolls < 1))) nextTurn >> return ()
         _  -> (setStage $ SelectPiece num) >> (setNumRolls $ if num == 6 then 1 else 0)
+    state' <- State.get
+    let newNum = getRoll $ stage state'
+    lift $ animateDice state' optionList newNum prevRoll
+    where
+        getPrevNum = do
+            state <- State.get
+            case stage state of
+                Roll Nothing     -> return (-1)
+                Roll (Just roll) -> return roll
+                _                -> error "Roll must only be called in stage 'Roll'"
+
+        animateDice = ffi "((gs, opts, rolls, prevRolls) => drawDiceAnimation(gs, opts, rolls, prevRolls))" :: GameState -> [Option] -> Int -> Int -> IO ()
 
 
 skipsPlayer :: Ludo Bool
