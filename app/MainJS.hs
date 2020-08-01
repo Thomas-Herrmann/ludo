@@ -10,7 +10,7 @@ import LudoJS
 
 main :: IO ()
 main = do
-    export "convertCell" convertCell
+    export "numPiecesAt" numPiecesAt
     roll <- getStdRandom (randomR (1, 4))
     let player = numToColor roll
     withElem "canvas" $ play player

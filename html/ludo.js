@@ -24,7 +24,7 @@ const playerColorDark = {
 }
 
 const iconColor = [80, 80, 80];
-const boardColor = [230, 230, 230];
+const boardColor = [255, 255, 255];
 const diceColor = boardColor;
 
 function onHasteStart() {
@@ -100,16 +100,22 @@ function drawStar(posX, posY) {
     ctx.fill();
 }
 
-function drawPlayer(posX, posY, player = "Green") {
-    ctx.beginPath();
-    ctx.strokeStyle = cssColor(...playerColorDark[player]);
-    ctx.lineWidth = tileWidth * 0.1;
+function drawPlayer(posX, posY, player, gameState) {
+    let field = posToField(posX, posY, player);
+    let numPieces = Haste.numPiecesAt(gameState, player, field);
 
-    ctx.moveTo(posX + tileWidth / 2, posY + tileHeight * 1/4);
-    ctx.lineTo(posX + tileWidth * 1/4, posY + tileHeight * 3/4);
-    ctx.moveTo(posX + tileWidth / 2, posY + tileHeight * 1/4);
-    ctx.lineTo(posX + tileWidth * 3/4, posY + tileHeight * 3/4);
-    ctx.stroke();
+    ctx.beginPath();
+    ctx.fillStyle = cssColor(...playerColorDark[player]);
+    ctx.arc(posX + tileWidth * 0.5, posY + tileHeight * 0.5, tileWidth * 0.3, 0, 2 * Math.PI);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.fillStyle = cssColor(255, 255, 255);
+    ctx.arc(posX + tileWidth * 0.5, posY + tileHeight * 0.5, tileWidth * 0.2, 0, 2 * Math.PI);
+    ctx.fill();
+
+    ctx.fillStyle = cssColor(...iconColor);
+    ctx.font = "bold " + Math.floor(tileWidth * 0.35) + "px helvetica";
+    ctx.fillText(numPieces.toString(), posX + tileWidth * 0.4, posY + tileHeight * 0.62, tileWidth);
 }
 
 function drawDice(posX, posY, num) {
@@ -274,10 +280,10 @@ function drawBoard(gameState, options, roll) {
             let piece = playerPieces[pieceIndex];
 
             if (piece.piece == "Out") {
-                drawTiles([outPositions[player][pieceIndex - 1]], drawPlayer, player);
+                drawTiles([outPositions[player][pieceIndex - 1]], drawPlayer, player, gameState);
             }
             else if (piece.piece == "Active") {
-                drawTiles([playerPosToTilePos(player, piece.field)], drawPlayer, player);
+                drawTiles([playerPosToTilePos(player, piece.field)], drawPlayer, player, gameState);
             }
         }
     }

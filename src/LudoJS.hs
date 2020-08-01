@@ -5,6 +5,7 @@ module LudoJS
     , Player(..)
     , numToColor
     , convertCell
+    , numPiecesAt
     ) where
 
 import Control.Monad
@@ -245,6 +246,22 @@ step i = do
             starterIndex <- lift $ getStdRandom (randomR (1, 4))
             put $ initGameState (numToColor starterIndex)
     drawBoard
+
+
+numPiecesAt :: GameState -> Player -> Int -> IO Int
+numPiecesAt state player i
+    | i <= -1 && i >= -4 = return $ if Prelude.foldr isOut False colorPieces then 1 else 0
+    | otherwise          = return $ Prelude.foldr countPieces 0 colorPieces
+        where
+            colorPieces = (pieces state) ! player
+
+            countPieces (_, Out) sum      = sum
+            countPieces (_, Active j) sum = if i == j then sum + 1 else sum
+
+            n = i + 5
+
+            isOut (m, Out) b = if n == m then True else b
+            isOut (_, Active _) b = b 
 
 
 maybePieceIndex :: Int -> Ludo (Maybe Int)
