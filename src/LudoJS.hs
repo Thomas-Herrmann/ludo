@@ -466,15 +466,22 @@ move n i = do
             let updatedPieces = removeFrom colorPieces n
             put state{ pieces = Map.insert player updatedPieces allPieces }
         _ | i `elem` starCells -> do
-            let starIndex = fromJust $ List.elemIndex i starCells
-            let newCell = (starCells ++ [56]) !! (starIndex + 1)
-            let updatedPieces = 
-                    if starIndex + 1 == length starCells 
-                        then removeFrom colorPieces n 
-                        else (n, Active newCell):(removeFrom colorPieces n)
+            let updatedPieces = (n, Active i):(removeFrom colorPieces n)
             put state{ pieces = Map.insert player updatedPieces allPieces }
             player `movesTo` i
-            player `movesTo` newCell
+            pred <- player `occupies` i
+            when pred $ do
+                state' <- State.get
+                let allPieces' = pieces state'
+                let colorPieces' = allPieces' ! player
+                let starIndex = fromJust $ List.elemIndex i starCells
+                let newCell = (starCells ++ [56]) !! (starIndex + 1)
+                let updatedPieces' = 
+                        if starIndex + 1 == length starCells 
+                            then removeFrom colorPieces' n 
+                            else (n, Active newCell):(removeFrom colorPieces' n)
+                put state'{ pieces = Map.insert player updatedPieces' allPieces' }
+                player `movesTo` newCell
           | i `elem` globeCells -> do
             let updatedPieces = (n, Active i):(removeFrom colorPieces n)
             put state{ pieces = Map.insert player updatedPieces allPieces }
