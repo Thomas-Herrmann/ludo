@@ -344,7 +344,6 @@ selectField n i num = do
                     put state{ finished = winOrder }
                     setStage GameFinished
                 else setStage $ Roll (Just num)
-            setStage $ if gameFinished then GameFinished else Roll $ Just num
             return True
         else return False
     where
